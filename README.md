@@ -17,7 +17,7 @@ This repo is structured to contain both the **frontend** and **backend** codebas
 ## 🚀 Features (MVP)
 
 - 🔐 **Authentication (UI only for now)**  
-  Login/Register pages with DU email requirement.  
+  Login/Register pages.  
 
 - 👤 **User Profile**  
   View and edit basic profile information (name, about, course, year).  
@@ -43,7 +43,7 @@ This repo is structured to contain both the **frontend** and **backend** codebas
 - **Backend (planned)**  
   - Django  
   - Django REST Framework (DRF)  
-  - PostgreSQL (or SQLite for dev)  
+  - PostgreSQL   
 
 ---
 

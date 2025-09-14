@@ -4,7 +4,7 @@ import Landing from "../pages/Landing";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Home from "../pages/Home";
-import Profile from "../pages/Profile";
+import UserProfile from "../pages/UserProfile";
 import About from "../pages/About";
 
 export default function AppRoutes() {
@@ -16,7 +16,7 @@ export default function AppRoutes() {
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={<About />} />
-        <Route path="/profile/:id" element={<Profile />} />
+        <Route path="/user/:id" element={<UserProfile />} />
       </Routes>
     </Router>
   );

@@ -1,0 +1,103 @@
+{
+    "users": [
+      {
+        "id":"abhinavz",
+        "name": "Abhinav Gupta",
+        "headline": "Computer Science Student at Delhi University",
+        "location": "New Delhi, India",
+        "profilePic": "https://i.pinimg.com/736x/19/11/25/19112569138098b475fac18ac230567d.jpg",
+        "about": "Passionate about full-stack web development and data structures. I enjoy building meaningful projects, learning new technologies, and connecting with like-minded peers.",
+        "experience": [
+          {
+            "title": "Frontend Developer Intern",
+            "company": "TechStart Pvt Ltd",
+            "location": "On Site: Bengaluru",
+            "duration": "Jun 2024 – Aug 2024",
+            "description": "Worked on building responsive web apps using React and Tailwind. Improved performance by 20% through optimization."
+          },
+          {
+            "title": "Open Source Contributor",
+            "company": "GitHub Projects",
+            "location": "Remote",
+            "duration": "2023 – Present",
+            "description": "Contributed to open-source repositories, focusing on bug fixes and UI improvements."
+          }
+        ],
+        "education": [
+          {
+            "school": "Delhi University",
+            "degree": "Master of Computer Application (MCA)",
+            "duration": "2025 – 2027"
+          },
+          {
+            "school": "Mahatma Gandhi Kashi Vidyapeeth",
+            "degree": "Bachelor of Computer Application (BCA)",
+            "duration": "2021 – 2024"
+          }
+        ],
+        "skills": ["React", "Node.js", "C++", "TailwindCSS", "SQL"],
+        "posts": [
+          {
+            "id": 1,
+            "content": "Excited to share that I’ve just completed my internship at TechStart Pvt Ltd! 🚀",
+            "date": "Sep 1, 2025"
+          },
+          {
+            "id": 2,
+            "content": "Learning DSA in C++ has been a fun and challenging journey! 💻",
+            "date": "Aug 15, 2025"
+          }
+        ]
+      },
+      {
+        "id": "shivashish",
+        "name": "Shivashish Yadav",
+        "headline": "Data Analyst | DU Alumni",
+        "location": "Delhi NCR, India",
+        "profilePic": "https://images.pexels.com/photos/30641009/pexels-photo-30641009.jpeg",
+        "about": "Data enthusiast with a strong foundation in SQL, Python, and visualization tools. Love working on real-world problems using data-driven insights.",
+        "experience": [
+          {
+            "title": "Data Analyst",
+            "company": "Infosys Ltd",
+            "location": "Mumbai, India",
+            "duration": "Jul 2023 – Present",
+            "description": "Analyzed large datasets to improve business strategies. Automated reporting pipelines, reducing manual work by 40%."
+          },
+          {
+            "title": "Research Assistant",
+            "company": "Delhi University",
+            "location": "New Delhi, India",
+            "duration": "2022 – 2023",
+            "description": "Assisted in academic research projects involving machine learning models and statistical analysis."
+          }
+        ],
+        "education": [
+          {
+            "school": "Delhi University",
+            "degree": "Master of Science in Data Analytics",
+            "duration": "2021 – 2023"
+          },
+          {
+            "school": "Delhi University",
+            "degree": "Bachelor of Science in Statistics",
+            "duration": "2018 – 2021"
+          }
+        ],
+        "skills": ["Python", "SQL", "Tableau", "Excel", "Machine Learning"],
+        "posts": [
+          {
+            "id": 1,
+            "content": "Just wrapped up a data visualization project using Tableau — thrilled with the results ",
+            "date": "Aug 30, 2025"
+          },
+          {
+            "id": 2,
+            "content": "Excited to mentor students at DU about career opportunities in data analytics!",
+            "date": "Jul 20, 2025"
+          }
+        ]
+      }
+    ]
+  }
+  

@@ -1,0 +1,58 @@
+I am writting these all steps for my understanding about the project, because i know after a time
+people often forget the things and its okay, but probably the concept is clear then its easy to understand
+the things which are actually happening by just taking a quick review.
+
+
+STEP-1. Project Setup
+    I created a Django project called backend and an app called users.
+    Set up a virtual environment and installed Django + Django REST Framework (DRF).
+    Configured settings.py:
+        INSTALLED_APPS → added rest_framework + users.
+        AUTH_USER_MODEL = 'users.User'.
+        Added MEDIA settings to handle file uploads.
+
+
+
+STEP-2. Custom User Model
+    Extended AbstractUser into our own User model.
+    Added extra fields:
+        is_student, is_alumni, is_faculty
+        about, linkedin, github, profile_picture.
+This gives us full control over users in the future.
+
+
+
+STEP-3. Other Models
+    We created models linked to User:
+        Education (degree, institution, years).
+        Certificate (title, issuer, date, optional image + link).
+        Achievement (title, description, date, optional image).
+        Resume (One-to-One with User, upload file).
+These make our system like a profile system for students, alumni, faculty.
+
+
+
+STEP-4.Serializers
+    Built DRF serializers to convert our models into JSON:
+        EducationSerializer, CertificateSerializer, AchievementSerializer, ResumeSerializer.
+        UserSerializer → pulls in all related data (educations, certificates, achievements, resume).
+This is how React or any frontend will consume data.
+
+
+
+STEP-5. Views & URLs
+    Used class-based generic API views (ListAPIView, RetrieveAPIView) for:
+        /api/users/ → list of all users.
+        /api/users/<id>/ → details of a specific user (including their education, achievements)
+
+
+STEP-6. Admin Panel
+    Registered all models in admin.py so we can add/edit users, education, certificates, achievements, resumes via Django Admin.
+
+
+
+STEP-7.Migrations
+    Ran migrations to apply all these models into our SQLite database.
+    Fixed the inconsistent migration history issue.
+    Installed Pillow to support images.
+

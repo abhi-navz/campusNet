@@ -17,12 +17,51 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 from django.conf.urls.static import static
 
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
+# swagger schema view 
+schema_view = get_schema_view(
+    openapi.Info(
+        title="CampusNet API",
+        default_version='v1',
+        description="API docs for CampusNet",
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+    authentication_classes=[JWTAuthentication],
+)
+
+# Tell Swagger that we use Bearer Auth (JWT) instead of Basic
+schema_view.security_definitions = {
+    "BearerAuth": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header",
+        "description": "JWT Authorization header using the Bearer scheme. Example: 'Bearer <your_token>'",
+    }
+}
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('users.urls')), #tells Django to load the app’s URL patterns
+
+    # All user-related API endpoints
+    path('api/', include('users.urls')),
+
+    # Swagger UI
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+
+    # JWT Authentication
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
 
 # Serve media files in development

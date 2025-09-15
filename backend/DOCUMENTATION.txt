@@ -7,9 +7,15 @@ STEP-1. Project Setup
     I created a Django project called backend and an app called users.
     Set up a virtual environment and installed Django + Django REST Framework (DRF).
     Configured settings.py:
-        INSTALLED_APPS → added rest_framework + users.
-        AUTH_USER_MODEL = 'users.User'.
-        Added MEDIA settings to handle file uploads.
+        INSTALLED_APPS - added rest_framework + users{
+            'rest_framework',
+            'users',
+        }
+        AUTH_USER_MODEL = 'users.User'.{AUTH_USER_MODEL = 'users.User'}
+        Added MEDIA settings to handle file uploads.{
+            MEDIA_URL = '/media/'
+            MEDIA_ROOT = BASE_DIR / 'media'
+        }
 
 
 
@@ -56,3 +62,58 @@ STEP-7.Migrations
     Fixed the inconsistent migration history issue.
     Installed Pillow to support images.
 
+
+
+STEP-8. ModelViewSets & Routers
+    Until now, we used generic API views (ListAPIView, RetrieveAPIView).
+    Problem: Each new endpoint (create, update, delete) would require writing separate classes.
+    Solution: ModelViewSet – a class that gives all CRUD operations (Create, Read, Update, Delete) in one place.
+
+
+
+STEP:9 - Swagger with drf_yasg → gave us an interactive webpage for testing/documenting APIs
+        its just a UI for API testing, we can aslo used Postman. thats okay
+
+
+
+STEP: 10- Authentication=> As for now our API are open , means anyone can manipulate data of another user
+    We need to secure our API so that only logged-in users can access certain data.
+    For this project, we’ll use JWT (JSON Web Token) authentication because it works well with React frontends.
+
+
+some theory to know about this: lets understand it-
+    what is JWT? (JSON WEB TOKEN)
+    A token (string of random-looking characters) is generated when a user logs in
+    The frontend saves the token (in local storage or memory)
+    Every time the frontend calls an API, it sends the token in the Authorization header
+    The backend checks the token, if valid, the request goes through
+
+    used module - djangorestframework-simplejwt
+    updating setting.py
+
+    working:
+        Endpoint: POST /api/token/
+        JSON: 
+        {
+            "username": "ashish",
+            "password": "mypassword123"
+        }
+        Response:
+        {
+            "refresh": "some_long_token_string",
+            "access": "another_long_token_string"
+        }
+
+
+
+STEP: 11=> Permissions
+    Currently we use a custom permission: IsOwnerOrReadOnly.
+    Ensures a user can only edit/delete their own data.
+    Others can only read.
+    Applied in all ViewSets:
+        like this permission_classes = [IsOwnerOrReadOnly]
+    This prevents data manipulation by unauthorized users.
+
+STEP: 12=> Frontend Integration Notes
+            ongoing.....
+            base_url of api: http://127.0.0.1:8000/api/

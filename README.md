@@ -1,11 +1,11 @@
 # CampusNet
 
-CampusNet is a LinkedIn-like web application designed exclusively for **Delhi University** students, teachers, and faculty.  
+CampusNet is a LinkedIn-like web application designed exclusively for **Delhi University** students, teachers, and alumni.  
 The project aims to provide a professional networking space where the DU community can connect, share updates, and collaborate.  
 
 ---
 
-## 📌 Project Overview
+## Project Overview
 
 - **Frontend** → React (Vite) + TailwindCSS  
 - **Backend (planned)** → Django + Django REST Framework  
@@ -14,26 +14,26 @@ This repo is structured to contain both the **frontend** and **backend** codebas
 
 ---
 
-## 🚀 Features (MVP)
+## Features (MVP)
 
-- 🔐 **Authentication (UI only for now)**  
+-  **Authentication (Secured and Trusted)**  
   Login/Register pages.  
 
-- 👤 **User Profile**  
+- **User Profile**  
   View and edit basic profile information (name, about, course, year).  
 
-- 📰 **Feed**  
+- **Feed**  
   Post updates (text-based initially) and view posts from others.  
 
-- 🤝 **Connections**  
+- **Connections**  
   Explore DU users and connect/follow them.  
 
-- 🧭 **Navigation**  
-  Simple navbar for moving between pages.  
+- **Navigation**  
+  Friendly navbar for moving between pages.  
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**  
   - React (Vite)  
@@ -47,7 +47,6 @@ This repo is structured to contain both the **frontend** and **backend** codebas
 
 ---
 
-🤝 Work in progress..
+Work in progress..
 
 This is a work-in-progress project. Contributions are welcome as we expand functionalities.
-

@@ -10,12 +10,17 @@ from .models import User, Education, Achievement, Certificate, Resume
 from .serializers import UserSerializer, EducationSerializer, ResumeSerializer, CertificateSerializer, AchievementSerializer
 from .permissions import IsOwnerOrReadOnly
 
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from django.contrib.auth.hashers import make_password
+from .models import User
+from .serializers import UserSerializer
+
 
 # Create your views here.
 
-# A default Home page in Json formate
-def home(request):
-    return JsonResponse({"message": "Welcome to CampusNet API!"})
 
 ##NOTE: PHASE-1: This was phase-1 where we just got the API, but we are extending this to define all other Operation too like Upadte/delete/Post
 # class UserListAPIView(generics.ListAPIView):
@@ -60,3 +65,34 @@ class AchievementViewSet(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()
     serializer_class = AchievementSerializer
     permission_classes = [IsOwnerOrReadOnly]
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])  # Anyone can hit signup
+def signup(request):
+    """
+    Signup API
+    ----------------
+    - Accepts: username, email, password, and optional fields (is_student, is_alumni, is_faculty, about, linkedin, github)
+    - Creates a new User in the database
+    - Returns the created user's details (without password)
+
+    Example request (from React):
+    POST /api/signup/
+    {
+        "username": "john_doe",
+        "email": "john@example.com",
+        "password": "strongpassword123",
+        "is_student": true
+    }
+    """
+    data = request.data
+
+    # Hash the password before saving
+    data["password"] = make_password(data["password"])
+
+    serializer = UserSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

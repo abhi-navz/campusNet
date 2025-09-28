@@ -2,7 +2,7 @@
 from django.urls import path, include
 from . import views
 from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, EducationViewSet, CertificateViewSet, AchievementViewSet, ResumeViewSet
+from .views import UserViewSet, EducationViewSet, CertificateViewSet, AchievementViewSet, ResumeViewSet,signup
 
 #NOTE: PHASE-1 : We were using particular path to fullfill our GET request
 # Django can’t call a class directly.
@@ -27,4 +27,6 @@ router.register(r'resumes', ResumeViewSet, basename='resume')
 
 urlpatterns = [
     path('', include(router.urls)),
+     # NEW Signup endpoint
+    path('signup/', signup, name="signup"),
 ]

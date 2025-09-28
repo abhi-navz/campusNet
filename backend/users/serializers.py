@@ -48,3 +48,16 @@ class UserSerializer(serializers.ModelSerializer):
             'is_student', 'is_alumni', 'is_faculty', 'profile_picture',
             'educations', 'certificates', 'achievements', 'resume'
         ]
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User(
+            username=validated_data['username'],
+            email=validated_data.get('email', ''),
+            is_student=validated_data.get('is_student', False),
+            is_alumni=validated_data.get('is_alumni', False),
+            is_faculty=validated_data.get('is_faculty', False),
+        )
+        user.set_password(validated_data['password'])  # hash password
+        user.save()
+        return user

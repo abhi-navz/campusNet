@@ -52,7 +52,7 @@ export default function Landing() {
           Connect with peers, mentors, and opportunities — build lasting relationships that go beyond the classroom.
         </p>
 
-        {/* CTA Buttons */}
+        {/*  Buttons */}
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <Link
             to="/register"

@@ -8,7 +8,7 @@ The project aims to provide a professional networking space where the DU communi
 ## Project Overview
 
 - **Frontend** → React (Vite) + TailwindCSS  
-- **Backend (planned)** → Django + Django REST Framework  
+- **Backend (planned)** → Express + NodeJS  
 
 This repo is structured to contain both the **frontend** and **backend** codebases.
 
@@ -41,9 +41,9 @@ This repo is structured to contain both the **frontend** and **backend** codebas
   - React Router DOM  
 
 - **Backend (planned)**  
-  - Django  
-  - Django REST Framework (DRF)  
-  - PostgreSQL   
+  - Express JS
+  -   
+  - MongoDB Atlas
 
 ---
 

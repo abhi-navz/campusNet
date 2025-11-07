@@ -12,12 +12,33 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,
       lowercase: true,
-      trim: true,
     },
     password: {
       type: String,
       required: true,
       minlength: 6,
+    },
+
+    // Profile-related fields
+    profilePic: {
+      type: String, // store image URL (like from Cloudinary)
+      default: "",
+    },
+    headline: {
+      type: String,
+      default: "",
+    },
+    bio: {
+      type: String,
+      default: "",
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    location: {
+      type: String,
+      default: "",
     },
   },
   { timestamps: true }

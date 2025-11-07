@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
-// import userRoutes from "./routes/userRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 
@@ -14,5 +14,6 @@ app.get("/", (req, res) => {
   res.send("Home page working now");
 });
 app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
 
 export default app;

@@ -1,3 +1,5 @@
+// backend/controllers/user/userController.js
+
 import User from "../../models/User.js";
 
 export const getUserProfile = async (req, res) => {
@@ -12,6 +14,12 @@ export const getUserProfile = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
     try {
+      // SECURITY CHECK: Ensure the user ID from the JWT payload (req.user.id) 
+      // matches the ID of the profile being updated (req.params.id)
+      if (req.user.id !== req.params.id) {
+        return res.status(403).json({ message: "Forbidden: You can only update your own profile." });
+      }
+
       const { fullName, headline, bio, skills, location, profilePic } = req.body;
   
       const updatedUser = await User.findByIdAndUpdate(

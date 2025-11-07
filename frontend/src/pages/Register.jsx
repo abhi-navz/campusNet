@@ -49,7 +49,7 @@ export default function Register() {
 
     try {
       // Placeholder API call
-      const response = await fetch("https://your-backend-api/register", {
+      const response = await fetch("http://localhost:5000/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -62,12 +62,12 @@ export default function Register() {
       const data = await response.json();
 
       if (response.ok) {
-        // alert("login succesfull")
-        // Redirect to login page after successful registration
+        alert("Signup successful! Please login now.");
         navigate("/login");
       } else {
         setError(data.message || "Registration failed.");
       }
+      
     } catch (err) {
       setError("Something went wrong. Please try again later.");
     }

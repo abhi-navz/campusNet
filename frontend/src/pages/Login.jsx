@@ -1,12 +1,56 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!formData.email || !formData.password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Login successful!");
+        localStorage.setItem("user", JSON.stringify(data.user));
+        navigate("/home");
+      } else {
+        setError(data.message || "Login failed.");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Something went wrong. Please try again later.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Navbar */}
       <header className="bg-white shadow">
         <nav className="flex justify-between items-center px-6 py-4">
-          {/* Logo */}
           <Link to="/" className="flex items-center text-2xl font-bold">
             <span className="text-violet-700">Campus</span>
             <span className="bg-violet-700 text-white px-2 py-1 rounded ml-1">
@@ -14,7 +58,6 @@ export default function Login() {
             </span>
           </Link>
 
-          {/* Links */}
           <div className="flex items-center gap-6">
             <Link
               to="/about"
@@ -39,15 +82,23 @@ export default function Login() {
             Welcome Back
           </h2>
 
-          <form className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
             <input
               type="email"
+              name="email"
               placeholder="Email Address"
+              value={formData.email}
+              onChange={handleChange}
               className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-700"
             />
             <input
               type="password"
+              name="password"
               placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
               className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-700"
             />
 
@@ -59,7 +110,6 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Link below form */}
           <p className="text-gray-600 text-sm text-center mt-4">
             New here?{" "}
             <Link

@@ -1,7 +1,26 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { FiSearch, FiMessageSquare, FiUser, FiUsers, FiHome } from "react-icons/fi";
 
-export default function Navbar({ userId }) {
+export default function Navbar() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/");
+  };
+
   return (
     <header className="w-full flex items-center justify-between px-6 py-4 shadow bg-white">
       {/* Logo */}
@@ -48,26 +67,40 @@ export default function Navbar({ userId }) {
           Network
         </Link>
 
-        <Link
-          to={`/profile/${userId}`} // dynamic profile link
-          className="flex items-center px-4 py-2 rounded hover:bg-gray-100"
-        >
-          <FiUser className="mr-1" />
-          Profile
-        </Link>
-
-        <Link
-          to="/login"
-          className="px-4 py-2 rounded bg-violet-600 text-white hover:bg-violet-700"
-        >
-          Login
-        </Link>
-        <Link
-          to="/register"
-          className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
-        >
-          Register
-        </Link>
+        {/* If user is logged in */}
+        {user ? (
+          <>
+            <Link
+              to={`/profile/${user.id}`}
+              className="flex items-center px-4 py-2 rounded hover:bg-gray-100"
+            >
+              <FiUser className="mr-1" />
+              {user.fullName.split(" ")[0]}
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            {/* If no user → show login/register */}
+            <Link
+              to="/login"
+              className="px-4 py-2 rounded bg-violet-600 text-white hover:bg-violet-700"
+            >
+              Login
+            </Link>
+            <Link
+              to="/register"
+              className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+            >
+              Register
+            </Link>
+          </>
+        )}
       </div>
     </header>
   );

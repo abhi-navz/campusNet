@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import LogoLink from "../components/LogoLink"; // <-- NEW: Import the consistent Logo component
 
 export default function Login() {
   const navigate = useNavigate();
@@ -35,7 +36,9 @@ export default function Login() {
 
       if (response.ok) {
         alert("Login successful!");
+        // CRITICAL UPDATE: Store both user data AND the JWT token
         localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("token", data.token); 
         navigate("/home");
       } else {
         setError(data.message || "Login failed.");
@@ -51,12 +54,8 @@ export default function Login() {
       {/* Navbar */}
       <header className="bg-white shadow">
         <nav className="flex justify-between items-center px-6 py-4">
-          <Link to="/" className="flex items-center text-2xl font-bold">
-            <span className="text-violet-700">Campus</span>
-            <span className="bg-violet-700 text-white px-2 py-1 rounded ml-1">
-              Net
-            </span>
-          </Link>
+          
+          <LogoLink /> 
 
           <div className="flex items-center gap-6">
             <Link

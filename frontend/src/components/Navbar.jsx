@@ -1,6 +1,13 @@
+// frontend/src/components/Navbar.jsx
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { FiSearch, FiMessageSquare, FiUser, FiUsers, FiHome } from "react-icons/fi";
+import {
+  FiSearch,
+  FiMessageSquare,
+  FiUser,
+  FiUsers,
+  FiHome,
+} from "react-icons/fi";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -8,23 +15,28 @@ export default function Navbar() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
+    const token = localStorage.getItem("token");
+
+    if (storedUser && token) {
       setUser(JSON.parse(storedUser));
     }
   }, []);
 
-
-
   const handleLogout = () => {
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setUser(null);
     navigate("/");
   };
 
+  // --- LOGIC TO DETERMINE LOGO DESTINATION ---
+  const token = localStorage.getItem("token");
+  const logoPath = token ? "/home" : "/";
+  
   return (
     <header className="w-full flex items-center justify-between px-6 py-4 shadow bg-white">
-      {/* Logo */}
-      <Link to="/" className="text-2xl font-bold flex items-center">
+      
+      <Link to={logoPath} className="text-2xl font-bold flex items-center">
         <span className="text-violet-700">Campus</span>
         <span className="bg-violet-700 text-white px-1 ml-1">Net</span>
       </Link>

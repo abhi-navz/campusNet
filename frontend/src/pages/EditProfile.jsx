@@ -4,7 +4,11 @@ import Layout from "../components/Layout";
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
+  // Retrieve user data and the token from localStorage
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token"); //  Get the token
+
+  const [user] = useState(storedUser);
   const [formData, setFormData] = useState({
     fullName: user?.fullName || "",
     headline: "",
@@ -15,9 +19,16 @@ export default function EditProfile() {
   });
 
   useEffect(() => {
+    // Redirect if user or token is missing 
+    if (!user || !token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
     // Fetch existing profile data
     async function fetchProfile() {
-      const res = await fetch(`http://localhost:5000/user/${user.id}`);
+     
+      const res = await fetch(`http://localhost:5000/user/${user.id}`); 
       const data = await res.json();
       setFormData({
         fullName: data.fullName,
@@ -29,7 +40,7 @@ export default function EditProfile() {
       });
     }
     fetchProfile();
-  }, [user.id]);
+  }, [user, token, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -37,6 +48,14 @@ export default function EditProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check for token before submitting to the protected endpoint
+    if (!token) {
+        alert("Authorization failed. Please login again.");
+        navigate("/login");
+        return;
+    }
+
     const payload = {
       ...formData,
       skills: formData.skills.split(",").map((s) => s.trim()),
@@ -44,15 +63,19 @@ export default function EditProfile() {
 
     const res = await fetch(`http://localhost:5000/user/update/${user.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, //  CRITICAL: Sending the JWT token
+      },
       body: JSON.stringify(payload),
     });
 
     const data = await res.json();
     if (res.ok) {
         alert("Profile updated!");
-        localStorage.setItem("user", JSON.stringify(data.user));
-        navigate(`/profile/${data.user._id || data.user.id}`);
+        // Update local storage with the new user object
+        localStorage.setItem("user", JSON.stringify(data.user)); 
+        navigate(`/profile/${data.user.id || data.user._id}`); 
     } else {
       alert(data.message);
     }

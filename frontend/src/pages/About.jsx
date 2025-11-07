@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import LogoLink from "../components/LogoLink"; // <-- NEW: Import the component
 
 export default function About() {
   return (
@@ -7,12 +8,7 @@ export default function About() {
       <header className="bg-white shadow">
         <nav className="flex justify-between items-center px-6 py-4">
           {/* Logo */}
-          <Link to="/" className="flex items-center text-2xl font-bold">
-            <span className="text-violet-700">Campus</span>
-            <span className="bg-violet-700 text-white px-2 py-1 rounded ml-1">
-              Net
-            </span>
-          </Link>
+          <LogoLink /> {/* <-- USE the new component */}
 
           {/* Links */}
           <div className="flex gap-6">

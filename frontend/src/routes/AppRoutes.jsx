@@ -8,13 +8,18 @@ import UserProfile from "../pages/UserProfile";
 import EditProfile from "../pages/EditProfile";
 import About from "../pages/About";
 
+/** Component to restrict access to authenticated users.
+ * @returns {JSX.Element} Child components if authenticated, otherwise redirects to /login.
+ */
 function ProtectedRoute({ children }) {
   try {
-    const storedUser = localStorage.getItem("user");
-    const user = storedUser ? JSON.parse(storedUser) : null;
-    return user ? children : <Navigate to="/login" replace />;
+    // CRITICAL UPDATE: Check only for the JWT token
+    const token = localStorage.getItem("token"); 
+    
+    // Grant access if token exists, otherwise redirect.
+    return token ? children : <Navigate to="/login" replace />;
   } catch (err) {
-    console.error("Error parsing user:", err);
+    console.error("Error checking authentication status:", err);
     return <Navigate to="/login" replace />;
   }
 }

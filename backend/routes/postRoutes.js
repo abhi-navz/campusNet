@@ -5,7 +5,8 @@ import {
   likeUnlikePost,
   getComments,
   addComment,
-  likeUnlikeComment
+  likeUnlikeComment,
+  getPostsByAuthor
 } from "../controllers/postController.js";
 import authMiddleware from "../middleware/auth.js"; // Import JWT middleware for protected routes
 
@@ -55,5 +56,13 @@ router.post("/comments/:postId", authMiddleware, addComment);
  * @access Private (Protected by authMiddleware)
  */
 router.put("/comment/like/:commentId", authMiddleware, likeUnlikeComment);
+
+// --- Posts in PROFILE ---
+/**
+ * @route GET /post/author/:authorId
+ * @desc Get recent posts made by a specific user.
+ * @access Private (Protected by authMiddleware)
+ */
+router.get("/author/:authorId", authMiddleware, getPostsByAuthor);
 
 export default router;

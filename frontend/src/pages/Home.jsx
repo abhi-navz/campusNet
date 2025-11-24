@@ -236,12 +236,7 @@ export default function Home() {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto mt-8">
-        <h1 className="text-2xl font-bold text-violet-700 mb-2">
-          Welcome back, {user?.fullName.split(" ")[0]} 👋
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Connect, share, and see what's happening on CampusNet:
-        </p>
+        
 
         {/* Post Creation Area: onPostCreated triggers a feed refresh */}
         <CreatePost user={user} onPostCreated={fetchFeed} />

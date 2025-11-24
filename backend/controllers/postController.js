@@ -189,3 +189,30 @@ export const likeUnlikeComment = async (req, res) => {
       res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+/**
+ * @function getPostsByAuthor
+ * @desc Retrieves posts by a specific user, limited to 4 for a profile preview.
+ * @route GET /post/author/:authorId?limit=...
+ * @access Private - Requires valid JWT.
+ * @param {object} req - Request object containing authorId in params and optional limit query.
+ * @param {object} res - Response object containing an array of posts.
+ */
+export const getPostsByAuthor = async (req, res) => {
+  try {
+      const { authorId } = req.params;
+      // Default limit to 4 for a profile preview, or use query parameter if provided
+      const limit = parseInt(req.query.limit) || 4; 
+
+      // Find posts by author, sort newest first, and apply the limit
+      const posts = await Post.find({ author: authorId })
+          .sort({ createdAt: -1 })
+          .populate("author", "fullName profilePic")
+          .limit(limit);
+
+      res.json(posts);
+  } catch (error) {
+      console.error("PostController: Error fetching posts by author:", error.message);
+      res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

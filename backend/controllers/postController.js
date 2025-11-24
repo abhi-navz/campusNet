@@ -92,3 +92,67 @@ export const likeUnlikePost = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+/**
+ * @function getComments
+ * @desc Retrieves all comments for a specific post, sorted by oldest first.
+ * @route GET /post/comments/:postId
+ * @access Private - Requires valid JWT.
+ * @param {object} req - Request object containing postId in params.
+ * @param {object} res - Response object containing an array of comments.
+ */
+export const getComments = async (req, res) => {
+  try {
+      const { postId } = req.params;
+      
+      // Find comments, populate author details, and sort by creation date (oldest first for thread readability)
+      const comments = await Comment.find({ post: postId })
+          .populate("author", "fullName profilePic")
+          .sort({ createdAt: 1 });
+
+      res.json(comments);
+  } catch (error) {
+      console.error("PostController: Error fetching comments:", error.message);
+      res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * @function addComment
+ * @desc Adds a new comment to a specified post.
+ * @route POST /post/comments/:postId
+ * @access Private - Requires valid JWT.
+ * @param {object} req - Request object containing postId in params, content in body, and user.id from JWT.
+ * @param {object} res - Response object.
+ */
+export const addComment = async (req, res) => {
+  try {
+      const { postId } = req.params;
+      const { content } = req.body;
+      const authorId = req.user.id;
+
+      if (!content || content.trim().length === 0) {
+          return res.status(400).json({ message: "Comment content cannot be empty." });
+      }
+      
+      // 1. Create the new comment
+      const newComment = new Comment({
+          post: postId,
+          author: authorId,
+          content,
+      });
+      await newComment.save();
+      
+      // 2. Increment the commentCount on the parent Post
+      await Post.findByIdAndUpdate(postId, { $inc: { commentCount: 1 } });
+      
+      // 3. Populate author details before sending the comment back
+      const populatedComment = await Comment.findById(newComment._id)
+          .populate('author', 'fullName profilePic');
+
+      res.status(201).json(populatedComment);
+  } catch (error) {
+      console.error("PostController: Error adding comment:", error.message);
+      res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

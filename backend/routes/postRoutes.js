@@ -1,5 +1,11 @@
 import express from "express";
-import { createPost, getFeed, likeUnlikePost } from "../controllers/postController.js";
+import {
+  createPost,
+  getFeed,
+  likeUnlikePost,
+  getComments,
+  addComment
+} from "../controllers/postController.js";
 import authMiddleware from "../middleware/auth.js"; // Import JWT middleware for protected routes
 
 const router = express.Router();
@@ -24,5 +30,22 @@ router.post("/", authMiddleware, createPost);
  * @access Private (Protected by authMiddleware)
  */
 router.put("/like/:postId", authMiddleware, likeUnlikePost);
+
+
+// --- COMMENT ROUTES ---
+
+/**
+ * @route GET /post/comments/:postId
+ * @desc Get all comments for a specific post.
+ * @access Private (Protected by authMiddleware)
+ */
+router.get("/comments/:postId", authMiddleware, getComments);
+
+/**
+ * @route POST /post/comments/:postId
+ * @desc Add a new comment to a specific post.
+ * @access Private (Protected by authMiddleware)
+ */
+router.post("/comments/:postId", authMiddleware, addComment);
 
 export default router;

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import postRoutes from "./routes/postRoutes.js"; 
 
 const app = express();
 
@@ -9,11 +10,14 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Routes
+// Health Check / Root Route
 app.get("/", (req, res) => {
-  res.send("Home page working now");
+  res.send("CampusNet API operational.");
 });
+
+// Primary API Routes
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
+app.use("/post", postRoutes); 
 
 export default app;

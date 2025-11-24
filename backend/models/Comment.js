@@ -5,6 +5,7 @@ import mongoose from "mongoose";
  * @property {mongoose.Schema.Types.ObjectId} post - Reference to the Post the comment belongs to.
  * @property {mongoose.Schema.Types.ObjectId} author - Reference to the User who created the comment.
  * @property {string} content - The text content of the comment (Max 300 characters).
+ * @property {mongoose.Schema.Types.ObjectId[]} likes - NEW: Array of User IDs who have liked the comment.
  * @property {Date} createdAt - Timestamp of creation.
  * @property {Date} updatedAt - Timestamp of last update.
  */
@@ -29,7 +30,12 @@ const CommentSchema = new mongoose.Schema(
       maxlength: 300,
       trim: true,
     },
-    //will Add support for likes on comments later if needed 
+   
+   // Likes for the comment itself
+    likes: {
+      type: [mongoose.Schema.Types.ObjectId],
+      default: [],
+    },
   },
   {
     timestamps: true,

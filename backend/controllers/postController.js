@@ -150,3 +150,42 @@ export const addComment = async (req, res) => {
       res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+/**
+ * @function likeUnlikeComment
+ * @desc Toggles the like status for the authenticated user on a specific comment.
+ * @route PUT /post/comment/like/:commentId
+ * @access Private - Requires valid JWT.
+ * @param {object} req - Request object containing commentId in params and user.id from JWT.
+ * @param {object} res - Response object.
+ */
+export const likeUnlikeComment = async (req, res) => {
+  try {
+      const commentId = req.params.commentId;
+      const userId = req.user.id; 
+
+      // 1. Find the comment
+      const comment = await Comment.findById(commentId);
+      if (!comment) {
+          return res.status(404).json({ message: "Comment not found." });
+      }
+
+      // 2. Check if the user already liked the comment
+      const isLiked = comment.likes.includes(userId);
+
+      if (isLiked) {
+          // UNLIKE: Remove the user ID from the likes array
+          comment.likes.pull(userId);
+          await comment.save();
+          res.json({ message: "Comment unliked successfully." });
+      } else {
+          // LIKE: Add the user ID to the likes array
+          comment.likes.push(userId);
+          await comment.save();
+          res.json({ message: "Comment liked successfully." });
+      }
+  } catch (error) {
+      console.error("PostController: Error liking/unliking comment:", error.message);
+      res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

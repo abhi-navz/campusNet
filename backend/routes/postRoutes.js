@@ -4,7 +4,8 @@ import {
   getFeed,
   likeUnlikePost,
   getComments,
-  addComment
+  addComment,
+  likeUnlikeComment
 } from "../controllers/postController.js";
 import authMiddleware from "../middleware/auth.js"; // Import JWT middleware for protected routes
 
@@ -47,5 +48,12 @@ router.get("/comments/:postId", authMiddleware, getComments);
  * @access Private (Protected by authMiddleware)
  */
 router.post("/comments/:postId", authMiddleware, addComment);
+
+/**
+ * @route PUT /post/comment/like/:commentId
+ * @desc Toggle like status on a specific comment.
+ * @access Private (Protected by authMiddleware)
+ */
+router.put("/comment/like/:commentId", authMiddleware, likeUnlikeComment);
 
 export default router;

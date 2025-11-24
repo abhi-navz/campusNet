@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { FiThumbsUp, FiMessageSquare } from "react-icons/fi"; 
 import Layout from "../components/Layout";
 import CreatePost from "../components/CreatePost"; 
-import CommentModal from "../components/CommentModal"; 
+import CommentModal from "../components/CommentModal";
 import { timeAgo } from "../utils/timeAgo"; 
 
 /**
@@ -274,11 +274,12 @@ export default function Home() {
       </div>
       
       {/* Comment Modal Component */}
-      {showCommentsModal && selectedPost && (
+      {showCommentsModal && selectedPost && user && (
         <CommentModal 
           post={selectedPost} 
           onClose={closeCommentModal} 
           onCommentCountUpdated={handleCommentCountUpdated} 
+          loggedInUserId={user.id} 
         />
       )}
     </Layout>

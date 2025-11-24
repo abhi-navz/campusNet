@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom"; // Needed for linking author to their profile
+import { Link } from "react-router-dom"; 
+import { FiThumbsUp, FiMessageSquare } from "react-icons/fi"; 
 import Layout from "../components/Layout";
 import CreatePost from "../components/CreatePost"; 
-import { timeAgo } from "../utils/timeAgo";
+import { timeAgo } from "../utils/timeAgo"; 
 
 /**
  * @component Home
@@ -25,7 +26,7 @@ export default function Home() {
   /**
    * @function fetchFeed
    * @desc Fetches the list of posts from the protected backend endpoint /post/feed.
-   * @type {useCallback} - Memoized to prevent unnecessary re-creations.
+   * @type {useCallback}
    */
   const fetchFeed = useCallback(async () => {
     setLoadingFeed(true);
@@ -41,7 +42,7 @@ export default function Home() {
       const response = await fetch("http://localhost:5000/post/feed", {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`, // Send JWT for authorization
+          'Authorization': `Bearer ${token}`, 
         },
       });
 
@@ -50,7 +51,6 @@ export default function Home() {
       if (response.ok) {
         setPosts(data); 
       } else {
-        // Handle error response from API
         setError(data.message || "Failed to fetch feed data.");
         setPosts([]);
       }
@@ -61,6 +61,62 @@ export default function Home() {
       setLoadingFeed(false);
     }
   }, []);
+
+  /**
+   * @function handleLike
+   * @desc Executes the protected API call to like or unlike a post, then updates local state immediately (Optimistic UI).
+   * @param {string} postId - The ID of the post being liked.
+   */
+  const handleLike = async (postId) => {
+    const token = localStorage.getItem('token');
+    const userId = user.id; // Get normalized user ID
+
+    if (!token || !userId) {
+        alert("Please log in to interact with posts.");
+        return;
+    }
+
+    try {
+        // --- OPTIMISTIC UI UPDATE ---
+        // Update the state locally before waiting for the API response
+        setPosts(prevPosts => 
+            prevPosts.map(p => {
+                if (p._id === postId) {
+                    const isLiked = p.likes.includes(userId);
+                    // Determine the new array based on current like status
+                    const newLikes = isLiked 
+                        ? p.likes.filter(id => id !== userId) // Remove like (unlike)
+                        : [...p.likes, userId]; // Add like
+                    
+                    // Return the post with the temporary new likes array
+                    return { ...p, likes: newLikes };
+                }
+                return p;
+            })
+        );
+        
+        // --- API CALL ---
+        const response = await fetch(`http://localhost:5000/post/like/${postId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            // If the API call fails, revert the change and show an error
+            const errorData = await response.json();
+            console.error("Like API failed:", errorData.message);
+            alert("Failed to process like action. Please try again.");
+            fetchFeed(); // Re-fetch to restore correct state
+        }
+    } catch (err) {
+        console.error("Network error during like action:", err);
+        alert("Network error during like action. Please try again.");
+        fetchFeed(); // Re-fetch to restore correct state
+    }
+  };
+
 
   // Trigger feed fetch when component mounts or user state is confirmed
   useEffect(() => {
@@ -83,43 +139,62 @@ export default function Home() {
   /**
    * @component PostItem
    * @desc Renders a single, beautifully styled post card in the feed.
+   * @param {object} props.post - The post object containing likes and author data.
    */
-  const PostItem = ({ post }) => (
-    <div className="bg-white shadow rounded-xl p-5 border border-gray-200">
-      <div className="flex items-center mb-3">
-        {/* Author Profile Picture */}
-        <img 
-          src={post.author?.profilePic || "https://placehold.co/40x40/7c3aed/ffffff?text=DU"}
-          alt={post.author?.fullName}
-          className="w-10 h-10 rounded-full object-cover mr-3 border border-gray-300"
-        />
-        <div>
-          {/* Author Name - Linked to their profile page */}
-          <Link 
-            to={`/profile/${post.author?._id}`} 
-            className="font-semibold text-violet-700 hover:underline transition"
-          >
-            {post.author?.fullName || 'Unknown User'}
-          </Link>
-          {/* Post Timestamp: using timeAgo utility */}
-          <p className="text-xs text-gray-500">{timeAgo(post.createdAt)}</p>
-        </div>
-      </div>
-      
-      {/* Post Content */}
-      <p className="text-gray-800 my-3 whitespace-pre-wrap">{post.content}</p>
+  const PostItem = ({ post }) => {
+    // Check if the current user ID is present in the post's likes array
+    const isLiked = post.likes.includes(user.id);
 
-      {/* Engagement metrics placeholder */}
-      <div className="flex items-center text-sm text-gray-500 mt-2 border-t pt-2">
-        <span className="mr-4 cursor-pointer hover:text-violet-600 transition">
-            👍 {post.likes?.length || 0} Likes
-        </span>
-        <span className="cursor-pointer hover:text-violet-600 transition">
-            💬 {post.commentCount || 0} Comments
-        </span>
-      </div>
-    </div>
-  );
+    return (
+        <div className="bg-white shadow rounded-xl p-5 border border-gray-200">
+        <div className="flex items-center mb-3">
+            {/* Author Profile Picture */}
+            <img 
+            src={post.author?.profilePic || "https://placehold.co/40x40/7c3aed/ffffff?text=DU"}
+            alt={post.author?.fullName}
+            className="w-10 h-10 rounded-full object-cover mr-3 border border-gray-300"
+            />
+            <div>
+            {/* Author Name - Linked to their profile page */}
+            <Link 
+                to={`/profile/${post.author?._id}`} 
+                className="font-semibold text-violet-700 hover:underline transition"
+            >
+                {post.author?.fullName || 'Unknown User'}
+            </Link>
+            {/* Post Timestamp - Using imported timeAgo UTILITY */}
+            <p className="text-xs text-gray-500">
+                {timeAgo(post.createdAt)}
+            </p>
+            </div>
+        </div>
+        
+        {/* Post Content */}
+        <p className="text-gray-800 my-3 whitespace-pre-wrap">{post.content}</p>
+
+        {/* Engagement metrics */}
+        <div className="flex items-center text-sm text-gray-500 mt-2 border-t pt-2">
+            {/* LIKE BUTTON - Dynamic styling and logic */}
+            <button 
+                onClick={() => handleLike(post._id)}
+                className={`flex items-center mr-4 p-1 rounded transition 
+                            ${isLiked 
+                                ? 'text-violet-700 font-bold bg-violet-100 hover:bg-violet-200' 
+                                : 'text-gray-500 hover:text-violet-600 hover:bg-gray-100'}`}
+            >
+                <FiThumbsUp className="mr-1" />
+                {isLiked ? 'Liked' : 'Like'} ({post.likes?.length || 0})
+            </button>
+            
+            {/* COMMENTS PLACEHOLDER */}
+            <span className="flex items-center p-1 cursor-pointer text-gray-500 hover:text-violet-600 hover:bg-gray-100 rounded transition">
+                <FiMessageSquare className="mr-1" />
+                {post.commentCount || 0} Comments
+            </span>
+        </div>
+        </div>
+    );
+  };
 
 
   return (

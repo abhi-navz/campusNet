@@ -52,3 +52,43 @@ export const getFeed = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+/**
+ * @function likeUnlikePost
+ * @desc Toggles the like status for the authenticated user on a specific post.
+ * @route PUT /post/like/:postId
+ * @access Private - Requires valid JWT.
+ * @param {object} req - Request object containing postId in params and user.id from JWT.
+ * @param {object} res - Response object.
+ */
+export const likeUnlikePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    // User ID is extracted from the validated JWT token
+    const userId = req.user.id; 
+
+    // Find the post
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+
+    // Check if the user already liked the post
+    const isLiked = post.likes.includes(userId);
+
+    if (isLiked) {
+      // UNLIKE: Use the MongoDB $pull operator to remove the user ID
+      post.likes.pull(userId);
+      await post.save();
+      res.json({ message: "Post unliked successfully." });
+    } else {
+      // LIKE: Use the MongoDB $push operator to add the user ID
+      post.likes.push(userId);
+      await post.save();
+      res.json({ message: "Post liked successfully." });
+    }
+  } catch (error) {
+    console.error("PostController: Error liking/unliking post:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

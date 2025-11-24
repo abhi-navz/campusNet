@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { FiThumbsUp, FiMessageSquare } from "react-icons/fi"; 
 import Layout from "../components/Layout";
 import CreatePost from "../components/CreatePost"; 
+import CommentModal from "../components/CommentModal"; 
 import { timeAgo } from "../utils/timeAgo"; 
 
 /**
@@ -14,6 +15,10 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
   const [error, setError] = useState(null);
+
+  // State for Comment Modal
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
 
   // Initialize user state from localStorage on mount
   useEffect(() => {
@@ -69,7 +74,7 @@ export default function Home() {
    */
   const handleLike = async (postId) => {
     const token = localStorage.getItem('token');
-    const userId = user.id; // Get normalized user ID
+    const userId = user.id;
 
     if (!token || !userId) {
         alert("Please log in to interact with posts.");
@@ -78,17 +83,14 @@ export default function Home() {
 
     try {
         // --- OPTIMISTIC UI UPDATE ---
-        // Update the state locally before waiting for the API response
         setPosts(prevPosts => 
             prevPosts.map(p => {
                 if (p._id === postId) {
                     const isLiked = p.likes.includes(userId);
-                    // Determine the new array based on current like status
                     const newLikes = isLiked 
                         ? p.likes.filter(id => id !== userId) // Remove like (unlike)
                         : [...p.likes, userId]; // Add like
                     
-                    // Return the post with the temporary new likes array
                     return { ...p, likes: newLikes };
                 }
                 return p;
@@ -104,7 +106,6 @@ export default function Home() {
         });
 
         if (!response.ok) {
-            // If the API call fails, revert the change and show an error
             const errorData = await response.json();
             console.error("Like API failed:", errorData.message);
             alert("Failed to process like action. Please try again.");
@@ -115,6 +116,38 @@ export default function Home() {
         alert("Network error during like action. Please try again.");
         fetchFeed(); // Re-fetch to restore correct state
     }
+  };
+  
+  /**
+   * @function handleCommentCountUpdated
+   * @desc Updates the local post object's comment count after a new comment is submitted.
+   * @param {string} postId - The ID of the post to update.
+   */
+  const handleCommentCountUpdated = (postId) => {
+    setPosts(prevPosts => 
+      prevPosts.map(p => 
+        p._id === postId ? { ...p, commentCount: p.commentCount + 1 } : p
+      )
+    );
+  };
+  
+  /**
+   * @function openCommentModal
+   * @desc Sets the post and opens the modal.
+   * @param {object} postData - The post object to display in the modal.
+   */
+  const openCommentModal = (postData) => {
+    setSelectedPost(postData);
+    setShowCommentsModal(true);
+  };
+  
+  /**
+   * @function closeCommentModal
+   * @desc Clears the selected post and closes the modal.
+   */
+  const closeCommentModal = () => {
+    setSelectedPost(null);
+    setShowCommentsModal(false);
   };
 
 
@@ -186,11 +219,14 @@ export default function Home() {
                 {isLiked ? 'Liked' : 'Like'} ({post.likes?.length || 0})
             </button>
             
-            {/* COMMENTS PLACEHOLDER */}
-            <span className="flex items-center p-1 cursor-pointer text-gray-500 hover:text-violet-600 hover:bg-gray-100 rounded transition">
+            {/* COMMENTS BUTTON - Opens the modal */}
+            <button 
+                onClick={() => openCommentModal(post)}
+                className="flex items-center p-1 cursor-pointer text-gray-500 hover:text-violet-600 hover:bg-gray-100 rounded transition"
+            >
                 <FiMessageSquare className="mr-1" />
                 {post.commentCount || 0} Comments
-            </span>
+            </button>
         </div>
         </div>
     );
@@ -200,7 +236,12 @@ export default function Home() {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto mt-8">
-        
+        <h1 className="text-2xl font-bold text-violet-700 mb-2">
+          Welcome back, {user?.fullName.split(" ")[0]} 👋
+        </h1>
+        <p className="text-gray-600 mb-6">
+          Connect, share, and see what's happening on CampusNet:
+        </p>
 
         {/* Post Creation Area: onPostCreated triggers a feed refresh */}
         <CreatePost user={user} onPostCreated={fetchFeed} />
@@ -231,6 +272,15 @@ export default function Home() {
           ))}
         </div>
       </div>
+      
+      {/* Comment Modal Component */}
+      {showCommentsModal && selectedPost && (
+        <CommentModal 
+          post={selectedPost} 
+          onClose={closeCommentModal} 
+          onCommentCountUpdated={handleCommentCountUpdated} 
+        />
+      )}
     </Layout>
   );
 }

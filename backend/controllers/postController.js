@@ -1,5 +1,6 @@
 import Post from "../models/Post.js";
 import User from "../models/User.js";
+import Comment from "../models/Comment.js"
 
 /**
  * @function createPost
@@ -117,14 +118,7 @@ export const getComments = async (req, res) => {
   }
 };
 
-/**
- * @function addComment
- * @desc Adds a new comment to a specified post.
- * @route POST /post/comments/:postId
- * @access Private - Requires valid JWT.
- * @param {object} req - Request object containing postId in params, content in body, and user.id from JWT.
- * @param {object} res - Response object.
- */
+
 export const addComment = async (req, res) => {
   try {
       const { postId } = req.params;

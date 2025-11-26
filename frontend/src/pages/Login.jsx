@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import LogoLink from "../components/LogoLink"; // <-- NEW: Import the consistent Logo component
+import LogoLink from "../components/LogoLink"; 
+import Toast from "../components/Toast"; // <-- NEW: Import Toast
 
 export default function Login() {
   const navigate = useNavigate();
@@ -11,14 +12,18 @@ export default function Login() {
   });
 
   const [error, setError] = useState("");
+  // Combined success state for the toast message
+  const [toastMessage, setToastMessage] = useState(null); 
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(""); // Clear error on input
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setToastMessage(null); // Clear previous messages
 
     if (!formData.email || !formData.password) {
       setError("Please enter both email and password.");
@@ -35,12 +40,20 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Login successful!");
-        // CRITICAL UPDATE: Store both user data AND the JWT token
+        // SUCCESS: Show toast, set user data, and redirect
         localStorage.setItem("user", JSON.stringify(data.user));
         localStorage.setItem("token", data.token); 
-        navigate("/home");
+        
+        // Show non-blocking toast notification
+        setToastMessage({ type: 'success', message: "Login successful!" });
+        
+        // Redirect after a slight pause for the user to see the toast
+        setTimeout(() => {
+            navigate("/home");
+        }, 1000); // 1 second delay
+
       } else {
+        // FAILURE: Display error message inline
         setError(data.message || "Login failed.");
       }
     } catch (err) {
@@ -51,7 +64,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Navbar */}
+      {/* Navbar (omitted for brevity, use existing) */}
       <header className="bg-white shadow">
         <nav className="flex justify-between items-center px-6 py-4">
           
@@ -82,8 +95,10 @@ export default function Login() {
           </h2>
 
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+           
             {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
+            
+            
             <input
               type="email"
               name="email"
@@ -104,6 +119,7 @@ export default function Login() {
             <button
               type="submit"
               className="bg-violet-700 text-white py-2 rounded-lg font-medium hover:bg-violet-600 transition"
+              disabled={toastMessage} // Disable button if toast is active (meaning successful login)
             >
               Login
             </button>
@@ -120,6 +136,15 @@ export default function Login() {
           </p>
         </div>
       </main>
+      
+      {/* RENDER TOAST COMPONENT */}
+      {toastMessage && (
+        <Toast 
+          message={toastMessage.message} 
+          type={toastMessage.type} 
+          onClose={() => setToastMessage(null)} 
+        />
+      )}
     </div>
   );
 }

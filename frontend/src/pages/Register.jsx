@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LogoLink from "../components/LogoLink"; 
+import Toast from "../components/Toast"; // <-- NEW: Import Toast
 
 export default function Register() {
   const navigate = useNavigate();
@@ -13,10 +14,9 @@ export default function Register() {
     confirmPassword: "",
   });
 
-
-
-  // Error state
+  // Error/Success states
   const [error, setError] = useState("");
+  const [toastMessage, setToastMessage] = useState(null); // <-- NEW: Toast state
 
   // Handle input changes
   const handleChange = (e) => {
@@ -24,6 +24,7 @@ export default function Register() {
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError(""); // Clear error on input
   };
 
 
@@ -31,6 +32,7 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setToastMessage(null);
 
     // Basic frontend validation
     if (
@@ -49,7 +51,6 @@ export default function Register() {
     }
 
     try {
-      // API call to the secured backend endpoint
       const response = await fetch("http://localhost:5000/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,10 +64,17 @@ export default function Register() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Signup successful! Please login now.");
-        navigate("/login");
+        // SUCCESS: Show toast and redirect
+        setToastMessage({ type: 'success', message: "Registration successful! Redirecting to login." });
+        
+        // Redirect after a pause
+        setTimeout(() => {
+            navigate("/login");
+        }, 1500); // Give a bit more time to see the toast
+
       } else {
-        setError(data.message || "Registration failed.");
+        // FAILURE: Display API error message inline
+        setError(data.message || "Registration failed. Please try a different email.");
       }
       
     } catch (err) {
@@ -76,7 +84,7 @@ export default function Register() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Navbar */}
+      {/* Navbar (omitted for brevity, use existing) */}
       <header className="bg-white shadow">
         <nav className="flex justify-between items-center px-6 py-4">
           
@@ -106,9 +114,13 @@ export default function Register() {
           </h2>
 
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            {/* Inline Error Message */}
             {error && (
               <p className="text-red-500 text-sm text-center">{error}</p>
             )}
+            
+            {/* Removed inline success message */}
+
             <input
               type="text"
               name="fullName"
@@ -145,6 +157,7 @@ export default function Register() {
             <button
               type="submit"
               className="bg-violet-700 text-white py-2 rounded-lg font-medium hover:bg-violet-600 transition"
+              disabled={toastMessage} // Disable button on success
             >
               Register
             </button>
@@ -161,6 +174,15 @@ export default function Register() {
           </p>
         </div>
       </main>
+      
+      {/* RENDER TOAST COMPONENT */}
+      {toastMessage && (
+        <Toast 
+          message={toastMessage.message} 
+          type={toastMessage.type} 
+          onClose={() => setToastMessage(null)} 
+        />
+      )}
     </div>
   );
 }

@@ -1,24 +1,32 @@
-import { useState } from 'react';
+import { useState, forwardRef, useRef, useImperativeHandle } from 'react';
 
 /**
  * @component CreatePost
  * @desc A form component for authenticated users to submit new posts to the feed.
  * @param {object} props
- * @param {object} props.user - The currently logged-in user object (for display).
- * @param {function} props.onPostCreated - Callback to refresh the parent's feed state upon success.
+ * @param {object} props.user - The currently logged-in user object.
+ * @param {function} props.onPostCreated - Callback to refresh the parent's feed state.
  */
-export default function CreatePost({ user, onPostCreated }) {
+const CreatePost = forwardRef(({ user, onPostCreated }, ref) => { // <-- Use forwardRef
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  
+  const textareaRef = useRef(null); // <-- Ref for the textarea element
 
-  /**
-   * @function handleSubmit
-   * @desc Submits the post content to the protected backend endpoint /post.
-   */
+  // Expose a function to the parent component (Home.jsx) to trigger focus
+  useImperativeHandle(ref, () => ({
+    focusInput: () => {
+      // Use requestAnimationFrame to ensure the scroll anchor fires first
+      requestAnimationFrame(() => {
+        textareaRef.current.focus();
+      });
+    }
+  }));
+
   const handleSubmit = async (e) => {
+// ... (handleSubmit function body is unchanged) ...
     e.preventDefault();
-    // Basic validation
     if (!content.trim()) {
       setError("Post content cannot be empty.");
       return;
@@ -29,14 +37,12 @@ export default function CreatePost({ user, onPostCreated }) {
 
     const token = localStorage.getItem('token');
     if (!token) {
-        // Defensive check, as this component should only be rendered if authenticated
         setError("Authorization token missing. Please relog.");
         setLoading(false);
         return;
     }
 
     try {
-      // Send data to the protected POST /post endpoint with the JWT in the header
       const response = await fetch('http://localhost:5000/post', {
         method: 'POST',
         headers: {
@@ -49,13 +55,12 @@ export default function CreatePost({ user, onPostCreated }) {
       const data = await response.json();
 
       if (response.ok) {
-        setContent(''); // Clear the input field upon successful post
-        // Trigger feed refresh in the parent component
+        setContent(''); // Clear the input field
         if (onPostCreated) {
-            onPostCreated(); 
+            onPostCreated(); // Tell the parent component (Home) to refresh
         }
       } else {
-        setError(data.message || 'Failed to create post. Check console for details.');
+        setError(data.message || 'Failed to create post.');
       }
 
     } catch (err) {
@@ -67,32 +72,32 @@ export default function CreatePost({ user, onPostCreated }) {
   };
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-lg mb-6 border border-violet-200">
+    <div id="create-post-container" className="bg-white p-4 rounded-xl shadow-lg mb-6 border border-violet-200">
       <div className="flex items-start mb-3">
-        {/* Author information display with placeholder image */}
+        {/* Author information display */}
         <img 
           src={user?.profilePic || "https://placehold.co/40x40/7c3aed/ffffff?text=DU"}
           alt="Profile"
           className="w-10 h-10 rounded-full object-cover mr-3 border border-violet-400"
         />
-        <p className="text-gray-700 font-semibold pt-1">What's new, {user?.fullName.split(' ')[0]}?</p>
+        <p className="text-gray-700 font-semibold pt-1">{user?.fullName.split(' ')[0]}, what's on your mind?</p>
       </div>
       
       <form onSubmit={handleSubmit}>
         <textarea
+          ref={textareaRef} // <-- ATTACH REF HERE
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Share an update, announcement, or question with CampusNet..."
           className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-violet-500 resize-none h-20"
           disabled={loading}
-          maxLength={500} 
+          maxLength={500}
         />
         
         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
         <div className="flex justify-between items-center mt-3">
           <span className="text-sm text-gray-500">
-            {/* Character counter */}
             {500 - content.length} characters remaining
           </span>
           <button
@@ -106,4 +111,6 @@ export default function CreatePost({ user, onPostCreated }) {
       </form>
     </div>
   );
-}
+});
+
+export default CreatePost; 

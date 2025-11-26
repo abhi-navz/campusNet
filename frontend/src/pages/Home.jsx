@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom"; 
+import { useEffect, useState, useCallback, useRef } from "react"; // <-- Import useRef
+import { Link, useLocation } from "react-router-dom"; // <-- Import useLocation
 import { FiThumbsUp, FiMessageSquare } from "react-icons/fi"; 
 import Layout from "../components/Layout";
 import CreatePost from "../components/CreatePost"; 
@@ -19,6 +19,10 @@ export default function Home() {
   // State for Comment Modal
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  
+  // Ref for the CreatePost component (used to programmatically focus the input)
+  const createPostRef = useRef(null); 
+  const location = useLocation(); // Get current location (includes hash)
 
   // Initialize user state from localStorage on mount
   useEffect(() => {
@@ -27,6 +31,15 @@ export default function Home() {
       setUser(JSON.parse(storedUser));
     }
   }, []);
+
+  // --- Effect to focus the input field when URL hash is present (from mobile + button) ---
+  useEffect(() => {
+    // Check if the URL hash matches the expected value and the ref is ready
+    if (location.hash === '#create-post' && createPostRef.current) {
+        // Trigger the exposed focusInput method
+        createPostRef.current.focusInput();
+    }
+  }, [location.hash]); // Re-run this effect whenever the hash changes
 
   /**
    * @function fetchFeed
@@ -238,8 +251,8 @@ export default function Home() {
       <div className="max-w-3xl mx-auto mt-8">
         
 
-        {/* Post Creation Area: onPostCreated triggers a feed refresh */}
-        <CreatePost user={user} onPostCreated={fetchFeed} />
+        {/* Post Creation Area: Pass the ref here */}
+        <CreatePost ref={createPostRef} user={user} onPostCreated={fetchFeed} /> {/* <-- ATTACHED REF HERE */}
 
         {/* Feed Section Header */}
         <h2 className="text-xl font-semibold text-gray-700 mb-4">Latest Posts</h2>

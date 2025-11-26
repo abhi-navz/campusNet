@@ -8,12 +8,17 @@ import UserProfile from "../pages/UserProfile";
 import EditProfile from "../pages/EditProfile";
 import About from "../pages/About";
 
+// --- NEW IMPORTS ---
+import Network from "../pages/Network";
+import Messages from "../pages/Messages";
+import Notifications from "../pages/Notifications";
+// -------------------
+
 /** Component to restrict access to authenticated users.
  * @returns {JSX.Element} Child components if authenticated, otherwise redirects to /login.
  */
 function ProtectedRoute({ children }) {
   try {
-    // CRITICAL UPDATE: Check only for the JWT token
     const token = localStorage.getItem("token"); 
     
     // Grant access if token exists, otherwise redirect.
@@ -56,6 +61,32 @@ export default function AppRoutes() {
           element={
             <ProtectedRoute>
               <EditProfile />
+            </ProtectedRoute>
+          }
+        />
+        
+        
+        <Route
+          path="/network"
+          element={
+            <ProtectedRoute>
+              <Network />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <Messages />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
             </ProtectedRoute>
           }
         />

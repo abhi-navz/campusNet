@@ -1,52 +1,193 @@
-# CampusNet
+#  CampusNet: Professional Networking Platform for Delhi University
 
-CampusNet is a LinkedIn-like web application designed exclusively for **Delhi University** students, teachers, and alumni.  
-The project aims to provide a professional networking space where the DU community can connect, share updates, and collaborate.  
+CampusNet is a dedicated professional networking platform — a **“LinkedIn for DU”** — designed exclusively for the **Delhi University community** including students, alumni, and faculty.  
+Its primary goal is to help users grow professionally, build academic and career connections, and provide a centralized digital hub for the DU network.
 
----
-
-## Project Overview
-
-- **Frontend** → React (Vite) + TailwindCSS  
-- **Backend (planned)** → Express + NodeJS  
-
-This repo is structured to contain both the **frontend** and **backend** codebases.
+This repository contains the full source code for the **MERN-based** full-stack application:  
+-  A RESTful API backend  
+-  A modern React + Vite frontend (SPA)
 
 ---
 
-## Features (MVP)
+##  Key Features
 
--  **Authentication (Secured and Trusted)**  
-  Login/Register pages.  
+CampusNet includes the following major functionalities:
 
-- **User Profile**  
-  View and edit basic profile information (name, about, course, year).  
+### Authentication
+- Signup and Login
+- JWT-based secured sessions
+- Password hashing using bcrypt
 
-- **Feed**  
-  Post updates (text-based initially) and view posts from others.  
+### User Profiles
+- Editable user details: bio, headline, skills, etc.
+- Profile photo support
+- View other users' public profiles
 
-- **Connections**  
-  Explore DU users and connect/follow them.  
+### Dynamic Activity Feed
+- Personalized feed with posts from the user’s network
+- Create text-based posts
+- View feed in chronological order
 
-- **Navigation**  
-  Friendly navbar for moving between pages.  
-
----
-
-## Tech Stack
-
-- **Frontend**  
-  - React (Vite)  
-  - TailwindCSS  
-  - React Router DOM  
-
-- **Backend (planned)**  
-  - Express JS
-  -   
-  - MongoDB Atlas
+### Social Interaction
+- Like/Unlike posts  
+- Add comments (modal-based UI)
+- “Time ago” formatting for posts & comments
 
 ---
 
-Work in progress..
+## Technology Stack (MERN)
 
-This is a work-in-progress project. Contributions are welcome as we expand functionalities.
+| Component | Technology | Role |
+|----------|------------|------|
+| **Frontend** | React (Vite) | UI, routing, components |
+| **Styling** | Tailwind CSS | Responsive utility-first design |
+| **Backend API** | Node.js + Express.js | All server-side logic |
+| **Database** | MongoDB + Mongoose | Storage for users, posts, comments |
+| **Security** | JWT & bcrypt | Tokens + password hashing |
+
+---
+
+## Getting Started
+
+### Prerequisites
+You must have:
+
+- **Node.js v18+**
+- **npm or yarn**
+- **Git**
+- **MongoDB** (Local or Atlas)
+
+---
+
+## Installation
+
+### Clone the Repository
+```bash
+git clone https://github.com/abhi-navz/campusNet.git
+cd campusNet
+```
+
+---
+
+### Install Dependencies — Backend
+#### Backend
+```bash
+cd backend
+npm install
+```
+
+#### Frontend
+```bash
+cd ../frontend
+npm install
+```
+
+---
+
+## Configure Environment Variables
+### Create a .env file inside backend/:
+```bash
+PORT=5000
+MONGO_URI="mongodb+srv://user:<password>@clustername/campusnetdb?retryWrites=true&w=majority"
+JWT_SECRET="your_very_secure_jwt_secret"
+```
+
+---
+
+## Run the Application (Development Mode)
+### Terminal 1 — Start Backend Server
+```bash
+cd backend
+npm run start
+```
+Server will run at: http://localhost:5000
+
+---
+
+### Terminal 2 — Start Frontend (Vite)
+```bash
+cd frontend
+npm run dev
+```
+Frontend will run at: http://localhost:5173
+
+---
+
+
+## Project File Structure
+
+##### Backend Directory — backend/
+```bash
+backend/
+│
+├── config/
+│   └── db.js               # MongoDB connection
+│
+├── controllers/
+│   ├── auth/               # Signup/Login logic
+│   ├── user/               # Profile: view/update
+│   └── postController.js   # Posts, feed, likes, comments
+│
+├── middleware/
+│   └── auth.js             # JWT authentication middleware
+│
+├── models/
+│   ├── User.js             # User schema
+│   └── Post.js             # Post schema
+│
+├── routes/
+│   ├── authRoutes.js
+│   ├── userRoutes.js
+│   └── postRoutes.js
+│
+└── server.js               # App entry point
+```
+
+
+
+##### Frontend Directory — frontend/src/
+```bash
+src/
+│
+├── components/             # Navbar, CreatePost, CommentModal, Layout
+├── pages/                  # Home, UserProfile, Login, Register, EditProfile
+│
+├── routes/
+│   └── AppRoutes.jsx       # Protected/Unprotected routes
+│
+├── utils/
+│   └── timeAgo.js          # Time formatting helper
+│
+└── App.jsx                 # Root component
+```
+
+
+## Core API Endpoints:
+#### Auth
+**Method** |	**Endpoint** |	**Description**
+|--------|------------|----------|
+POST |	```/api/v1/auth/signup```	|Register a new user
+POST |	```/api/v1/auth/login```	|Authenticate and receive JWT
+
+#### Posts
+
+**Method** |	**Endpoint** |	**Description**
+|--------|------------|----------|
+GET	| ```/api/v1/post/feed```	| Get chronological feed (Protected)
+PUT	| ```/api/v1/post/like/:postId```	| Toggle like on a post (Protected)
+
+#### User
+
+**Method** |	**Endpoint** |	**Description**
+|--------|------------|----------|
+GET |	```/api/v1/user/:id```	| Get public user profile
+PUT	| ```/api/v1/user/update/:id```	| Update profile (Protected)
+
+---
+
+## Contributers
+Shivashish Yadav: https://github.com/shivashishyadav
+Abhinav Gupta: https://github.com/abhi-navz
+Ajay Muleva: "Pending.."
+
+Project Link: https://github.com/abhi-navz/campusNet.git

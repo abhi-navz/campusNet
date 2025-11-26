@@ -187,7 +187,10 @@ PUT	| ```/api/user/update/:id```	| Update profile (Protected)
 
 ## Contributers
 Shivashish Yadav: https://github.com/shivashishyadav
+
+---
 Abhinav Gupta: https://github.com/abhi-navz
-Ajay Muleva: "Pending.."
+
+---
 
 Project Link: https://github.com/abhi-navz/campusNet.git

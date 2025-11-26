@@ -166,22 +166,22 @@ src/
 #### Auth
 **Method** |	**Endpoint** |	**Description**
 |--------|------------|----------|
-POST |	```/api/v1/auth/signup```	|Register a new user
-POST |	```/api/v1/auth/login```	|Authenticate and receive JWT
+POST |	```/api/auth/signup```	|Register a new user
+POST |	```/api/auth/login```	|Authenticate and receive JWT
 
 #### Posts
 
 **Method** |	**Endpoint** |	**Description**
 |--------|------------|----------|
-GET	| ```/api/v1/post/feed```	| Get chronological feed (Protected)
-PUT	| ```/api/v1/post/like/:postId```	| Toggle like on a post (Protected)
+GET	| ```/api/post/feed```	| Get chronological feed (Protected)
+PUT	| ```/api/post/like/:postId```	| Toggle like on a post (Protected)
 
 #### User
 
 **Method** |	**Endpoint** |	**Description**
 |--------|------------|----------|
-GET |	```/api/v1/user/:id```	| Get public user profile
-PUT	| ```/api/v1/user/update/:id```	| Update profile (Protected)
+GET |	```/api/user/:id```	| Get public user profile
+PUT	| ```/api/user/update/:id```	| Update profile (Protected)
 
 ---
 

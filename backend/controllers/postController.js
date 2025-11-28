@@ -191,6 +191,44 @@ export const likeUnlikeComment = async (req, res) => {
 };
 
 /**
+ * @function deleteComment
+ * @desc Deletes a specific comment and decrements the parent post's comment count.
+ * @route DELETE /post/comment/:commentId
+ * @access Private
+ */
+export const deleteComment = async (req, res) => {
+  try {
+      const commentId = req.params.commentId;
+      const userId = req.user.id; // User ID from authenticated token
+
+      // 1. Find the comment
+      const comment = await Comment.findById(commentId);
+      if (!comment) {
+          return res.status(404).json({ message: "Comment not found." });
+      }
+
+      // 2. Check if the authenticated user is the author
+      if (comment.author.toString() !== userId.toString()) {
+          return res.status(403).json({ message: "Forbidden: You can only delete your own comments." });
+      }
+
+      const postId = comment.post; 
+
+      // 3. Delete the comment
+      await Comment.findByIdAndDelete(commentId);
+
+      // 4. Decrement the commentCount on the parent Post
+      await Post.findByIdAndUpdate(postId, { $inc: { commentCount: -1 } });
+
+      res.json({ message: "Comment deleted successfully." });
+  } catch (error) {
+      console.error("PostController: Error deleting comment:", error.message);
+      res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+/**
  * @function getPostsByAuthor
  * @desc Retrieves posts by a specific user, limited to 4 for a profile preview.
  * @route GET /post/author/:authorId?limit=...

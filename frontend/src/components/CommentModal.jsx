@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FiX, FiSend, FiThumbsUp } from 'react-icons/fi';
+import { FiX, FiSend, FiThumbsUp, FiTrash2 } from 'react-icons/fi'; // <-- ADD FiTrash2
 import { timeAgo } from '../utils/timeAgo';
 
 /**
@@ -9,7 +9,7 @@ import { timeAgo } from '../utils/timeAgo';
  * @param {object} props.post - The post object whose comments are being viewed.
  * @param {function} props.onClose - Function to close the modal.
  * @param {function} props.onCommentCountUpdated - Callback to refresh the parent post's comment count.
- * @param {string} props.loggedInUserId - The ID of the currently authenticated user for like checks.
+ * @param {string} props.loggedInUserId - The ID of the currently authenticated user for like/delete checks.
  */
 export default function CommentModal({ post, onClose, onCommentCountUpdated, loggedInUserId }) {
   const [comments, setComments] = useState([]);
@@ -60,11 +60,11 @@ export default function CommentModal({ post, onClose, onCommentCountUpdated, log
   /**
    * @function handleLikeComment
    * @desc Toggles the like status on a specific comment with optimistic UI update.
-   * @param {string} commentId - The ID of the comment being liked.
    */
   const handleLikeComment = async (commentId) => {
     if (!token || !loggedInUserId) {
-        alert("Authentication required to like comments.");
+        // Using toast for non-alert feedback
+        alert("Authentication required to like comments."); 
         return;
     }
 
@@ -106,6 +106,42 @@ export default function CommentModal({ post, onClose, onCommentCountUpdated, log
     }
   };
 
+  /**
+   * @function handleDeleteComment
+   * @desc Handles comment deletion.
+   * @param {string} commentId - The ID of the comment to delete.
+   */
+  const handleDeleteComment = async (commentId) => {
+    if (!token) return;
+    
+    // Optimistic Update: Remove comment locally
+    setComments(prevComments => prevComments.filter(c => c._id !== commentId));
+    
+    // Also locally decrement parent post count (will be corrected on re-fetch if API fails)
+    onCommentCountUpdated(post._id, -1); 
+
+    try {
+      const response = await fetch(`http://localhost:5000/post/comment/${commentId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        // Revert state and re-fetch if deletion failed
+        const errorData = await response.json();
+        setError(errorData.message || "Failed to delete comment. Reverting state.");
+        fetchComments();
+        onCommentCountUpdated(post._id, 1); // Revert post count change
+      }
+      
+    } catch (err) {
+      console.error("Network error during comment deletion:", err);
+      setError("Network error during comment deletion. Reverting state.");
+      fetchComments(); // Revert/re-fetch on network error
+      onCommentCountUpdated(post._id, 1); // Revert post count change
+    }
+  };
+
 
   /**
    * @function handleAddComment
@@ -138,7 +174,7 @@ export default function CommentModal({ post, onClose, onCommentCountUpdated, log
       if (response.ok) {
         setNewCommentContent('');
         setComments(prev => [...prev, newComment]);
-        onCommentCountUpdated(post._id);
+        onCommentCountUpdated(post._id, 1); // Pass explicit increment for cleaner logic
       } else {
         setError(newComment.message || 'Failed to submit comment.');
       }
@@ -152,18 +188,32 @@ export default function CommentModal({ post, onClose, onCommentCountUpdated, log
 
   /**
    * @component CommentItem
-   * @desc Renders a single comment in the list, including the like button.
-   * @param {object} comment - The comment object.
+   * @desc Renders a single comment in the list, including the like and delete button.
    */
   const CommentItem = ({ comment }) => {
     const isLiked = comment.likes?.includes(loggedInUserId);
+    // NEW: Check if the current user is the author of this comment
+    const isAuthor = comment.author?._id === loggedInUserId; 
+
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleInitialDeleteClick = () => {
+        setIsDeleting(true);
+        // Automatically hide the confirm buttons after a short delay if no action is taken
+        setTimeout(() => setIsDeleting(false), 5000); 
+    };
+
+    const handleConfirmDelete = () => {
+        setIsDeleting(false); // Hide the buttons
+        handleDeleteComment(comment._id);
+    };
 
     return (
-        <div className="flex items-start mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-start mb-4 p-3 bg-gray-50 rounded-lg relative">
             <img
                 src={comment.author?.profilePic || "https://placehold.co/30x30/9253ed/ffffff?text=U"}
                 alt={comment.author?.fullName}
-                className="w-8 h-8 rounded-full object-cover mr-3 border border-violet-300"
+                className="w-8 h-8 rounded-full object-cover mr-3 border border-violet-300 shrink-0"
             />
             <div className="flex-1">
                 <p className="font-semibold text-violet-700 text-sm">
@@ -175,10 +225,10 @@ export default function CommentModal({ post, onClose, onCommentCountUpdated, log
                 <p className="text-gray-800 text-sm whitespace-pre-wrap">{comment.content}</p>
 
                 {/* LIKE ACTION BAR */}
-                <div className="flex items-center mt-1 text-xs text-gray-500">
+                <div className="flex items-center mt-1 text-xs text-gray-500 space-x-3">
                     <button
                         onClick={() => handleLikeComment(comment._id)}
-                        className={`flex items-center mr-3 font-medium transition 
+                        className={`flex items-center font-medium transition 
                                     ${isLiked 
                                         ? 'text-violet-700' 
                                         : 'hover:text-violet-600'}`}
@@ -192,10 +242,38 @@ export default function CommentModal({ post, onClose, onCommentCountUpdated, log
                         {comment.likes?.length || 0} Likes
                     </span>
                     
-                    {/* Placeholder for Reply button */}
-                    <span className="ml-3 font-medium cursor-pointer hover:text-violet-600">
-                        Reply
-                    </span>
+                    {/* Delete Option (Author Only) */}
+                    {isAuthor && (
+                        <div className="ml-3">
+                        {isDeleting ? (
+                            // Confirmation Buttons
+                            <div className="flex space-x-2 bg-red-100 p-1 rounded-md">
+                                <span className="text-red-700 font-medium">Confirm?</span>
+                                <button 
+                                    onClick={handleConfirmDelete}
+                                    className="text-white bg-red-600 px-2 rounded hover:bg-red-700 transition"
+                                >
+                                    Yes
+                                </button>
+                                <button 
+                                    onClick={() => setIsDeleting(false)}
+                                    className="text-red-600 bg-white border border-red-300 px-2 rounded hover:bg-red-50 transition"
+                                >
+                                    No
+                                </button>
+                            </div>
+                        ) : (
+                            // Initial Delete Button
+                            <button
+                                onClick={handleInitialDeleteClick}
+                                className="flex items-center text-gray-500 hover:text-red-600 transition"
+                            >
+                                <FiTrash2 className="mr-1 w-3 h-3" />
+                                Delete
+                            </button>
+                        )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

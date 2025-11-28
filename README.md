@@ -1,7 +1,6 @@
-#  CampusNet: Professional Networking Platform for Delhi University
+#  CampusNet
 
-CampusNet is a dedicated professional networking platform — a **“LinkedIn for DU”** — designed exclusively for the **Delhi University community** including students, alumni, and faculty.  
-Its primary goal is to help users grow professionally, build academic and career connections, and provide a centralized digital hub for the DU network.
+CampusNet is a dedicated professional networking platform - Its primary goal is to help users grow professionally, build academic and career connections, and provide a centralized digital hub for the DU network.
 
 This repository contains the full source code for the **MERN-based** full-stack application:  
 -  A RESTful API backend  

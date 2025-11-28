@@ -218,6 +218,46 @@ export const getPostsByAuthor = async (req, res) => {
 };
 
 /**
+ * @function updatePost
+ * @desc Updates the content of a specific post. Must be the author.
+ * @route PUT /post/:postId
+ * @access Private
+ */
+export const updatePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id; // User ID from authenticated token
+    const { content } = req.body;
+
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ message: "Post content cannot be empty." });
+    }
+    
+    // 1. Find the post and ensure the user is the author
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+
+    if (post.author.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Forbidden: You can only edit your own posts." });
+    }
+
+    // 2. Update the post content and save
+    post.content = content.trim();
+    await post.save();
+    
+    // 3. Re-populate the author before sending the updated post back
+    const updatedPost = await post.populate("author", "fullName profilePic");
+
+    res.json({ message: "Post updated successfully.", post: updatedPost });
+  } catch (error) {
+    console.error("PostController: Error updating post:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
  * @function deletePost
  * @desc Deletes a specific post and all its comments. Must be the author.
  * @route DELETE /post/:postId

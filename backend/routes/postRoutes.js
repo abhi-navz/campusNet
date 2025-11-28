@@ -7,7 +7,8 @@ import {
   addComment,
   likeUnlikeComment,
   getPostsByAuthor,
-  deletePost // <-- NEW IMPORT
+  deletePost,
+  updatePost // <-- NEW IMPORT
 } from "../controllers/postController.js";
 import authMiddleware from "../middleware/auth.js"; // Import JWT middleware for protected routes
 
@@ -33,6 +34,13 @@ router.post("/", authMiddleware, createPost);
  * @access Private (Protected by authMiddleware)
  */
 router.put("/like/:postId", authMiddleware, likeUnlikePost);
+
+/**
+ * @route PUT /post/:postId
+ * @desc Update a specific post (Author only).
+ * @access Private (Protected by authMiddleware)
+ */
+router.put("/:postId", authMiddleware, updatePost); // <-- NEW ROUTE
 
 /**
  * @route DELETE /post/:postId

@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from "react"; 
 import { Link, useLocation } from "react-router-dom"; 
-// ADD FiShare2 and FiTrash2
-import { FiThumbsUp, FiMessageSquare, FiShare2, FiTrash2 } from "react-icons/fi"; 
+// ADD FiEdit2 for the edit button
+import { FiThumbsUp, FiMessageSquare, FiShare2, FiTrash2, FiEdit2 } from "react-icons/fi"; // <-- UPDATED IMPORT
 import Layout from "../components/Layout";
 import CreatePost from "../components/CreatePost"; 
 import CommentModal from "../components/CommentModal";
 import Toast from "../components/Toast"; 
-import DeleteConfirmationModal from "../components/DeleteConfirmationModal"; // <-- NEW IMPORT
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal"; 
+import EditPostModal from "../components/EditPostModal"; // <-- NEW IMPORT
 import { timeAgo } from "../utils/timeAgo"; 
 
 /**
@@ -21,7 +22,8 @@ export default function Home() {
 
   // State for Modals
   const [showCommentsModal, setShowCommentsModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false); // <-- NEW STATE
+  const [showDeleteModal, setShowDeleteModal] = useState(false); 
+  const [showEditModal, setShowEditModal] = useState(false); // <-- NEW STATE
   const [selectedPost, setSelectedPost] = useState(null);
   
   // State for Toast Notifications
@@ -46,11 +48,11 @@ export default function Home() {
         // Trigger the exposed focusInput method
         createPostRef.current.focusInput();
     }
-  }, [location.hash]); // Re-run this effect whenever the hash changes
+  }, [location.hash]); 
 
   /**
    * @function fetchFeed
-   * @desc Fetches the list of posts from the protected backend endpoint /post/feed.
+   * @desc Retrieves a list of recent posts for the user's feed.
    * @type {useCallback}
    */
   const fetchFeed = useCallback(async () => {
@@ -88,8 +90,22 @@ export default function Home() {
   }, []);
 
   /**
+   * @function handlePostUpdated
+   * @desc Handles the update of a post object after the EditModal successfully returns.
+   * @param {object} updatedPost - The full post object returned from the API.
+   */
+  const handlePostUpdated = (updatedPost) => { // <-- NEW HANDLER
+    setPosts(prevPosts =>
+      prevPosts.map(p => (p._id === updatedPost._id ? updatedPost : p))
+    );
+    setToastMessage({ type: 'success', message: "Post updated successfully!" });
+    closeEditModal(); 
+  };
+
+
+  /**
    * @function handleLike
-   * @desc Executes the protected API call to like or unlike a post, then updates local state immediately (Optimistic UI).
+   * @desc Executes the protected API call to like or unlike a post.
    * @param {string} postId - The ID of the post being liked.
    */
   const handleLike = async (postId) => {
@@ -151,44 +167,36 @@ export default function Home() {
     );
   };
   
-  // --- Delete Modal Handlers ---
+  // --- Modal Handlers ---
 
-  /**
-   * @function openDeleteModal
-   * @desc Sets the post and opens the deletion confirmation modal.
-   * @param {object} postData - The post object to be deleted.
-   */
-  const openDeleteModal = (postData) => {
-    setSelectedPost(postData);
-    setShowDeleteModal(true);
-  };
-  
-  /**
-   * @function closeDeleteModal
-   * @desc Clears the selected post and closes the deletion modal.
-   */
-  const closeDeleteModal = () => {
-    setSelectedPost(null);
-    setShowDeleteModal(false);
-  };
-
-  /**
-   * @function openCommentModal
-   * @desc Sets the post and opens the comment modal.
-   * @param {object} postData - The post object to display in the modal.
-   */
   const openCommentModal = (postData) => {
     setSelectedPost(postData);
     setShowCommentsModal(true);
   };
   
-  /**
-   * @function closeCommentModal
-   * @desc Clears the selected post and closes the comment modal.
-   */
   const closeCommentModal = () => {
     setSelectedPost(null);
     setShowCommentsModal(false);
+  };
+
+  const openDeleteModal = (postData) => {
+    setSelectedPost(postData);
+    setShowDeleteModal(true);
+  };
+  
+  const closeDeleteModal = () => {
+    setSelectedPost(null);
+    setShowDeleteModal(false);
+  };
+
+  const openEditModal = (postData) => { // <-- NEW HANDLER
+    setSelectedPost(postData);
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => { // <-- NEW HANDLER
+    setSelectedPost(null);
+    setShowEditModal(false);
   };
 
   /**
@@ -196,7 +204,7 @@ export default function Home() {
    * @desc Handles post deletion. Triggered by modal confirmation.
    */
   const handleDeletePost = async () => {
-    if (!selectedPost) return; // Should not happen if modal flow is correct
+    if (!selectedPost) return; 
 
     const postId = selectedPost._id;
     const token = localStorage.getItem('token');
@@ -234,7 +242,7 @@ export default function Home() {
    * @function handleSharePost
    * @desc Placeholder for post sharing functionality (copies link to clipboard).
    */
-  const handleSharePost = (post) => {
+  const handleSharePost = (post) => { 
     const postUrl = `${window.location.origin}/post/${post._id}`; // Mock URL
     
     if (navigator.clipboard) {
@@ -245,8 +253,6 @@ export default function Home() {
             setToastMessage({ type: 'error', message: "Failed to copy link. Check console." });
         });
     } else {
-      // Fallback: This path is rare but provided in case clipboard API fails.
-      // We still cannot use window.alert/confirm/prompt.
       setToastMessage({ type: 'error', message: `Clipboard failed. URL: ${postUrl}` });
     }
   };
@@ -273,6 +279,7 @@ export default function Home() {
   /**
    * @component PostItem
    * @desc Renders a single, beautifully styled post card in the feed.
+   * @param {object} props.post - The post object containing likes and author data.
    */
   const PostItem = ({ post }) => {
     // Check if the current user ID is present in the post's likes array
@@ -282,32 +289,57 @@ export default function Home() {
 
     return (
         <div className="bg-white shadow rounded-xl p-5 border border-gray-200">
-        <div className="flex items-center mb-3">
-            {/* Author Profile Picture */}
-            <img 
-            src={post.author?.profilePic || "https://placehold.co/40x40/7c3aed/ffffff?text=DU"}
-            alt={post.author?.fullName}
-            className="w-10 h-10 rounded-full object-cover mr-3 border border-gray-300"
-            />
-            <div>
-            {/* Author Name - Linked to their profile page */}
-            <Link 
-                to={`/profile/${post.author?._id}`} 
-                className="font-semibold text-violet-700 hover:underline transition"
-            >
-                {post.author?.fullName || 'Unknown User'}
-            </Link>
-            {/* Post Timestamp - Using imported timeAgo UTILITY */}
-            <p className="text-xs text-gray-500">
-                {timeAgo(post.createdAt)}
-            </p>
+        <div className="flex items-center mb-3 justify-between">
+            <div className="flex items-center">
+                {/* Author Profile Picture */}
+                <img 
+                src={post.author?.profilePic || "https://placehold.co/40x40/7c3aed/ffffff?text=DU"}
+                alt={post.author?.fullName}
+                className="w-10 h-10 rounded-full object-cover mr-3 border border-gray-300"
+                />
+                <div>
+                {/* Author Name - Linked to their profile page */}
+                <Link 
+                    to={`/profile/${post.author?._id}`} 
+                    className="font-semibold text-violet-700 hover:underline transition"
+                >
+                    {post.author?.fullName || 'Unknown User'}
+                </Link>
+                {/* Post Timestamp - Using imported timeAgo UTILITY */}
+                <p className="text-xs text-gray-500">
+                    {timeAgo(post.createdAt)}
+                </p>
+                </div>
             </div>
+            
+            {/* Action Buttons (Edit/Delete - Top Right) */}
+            {isAuthor && (
+              <div className="flex space-x-2 text-sm text-gray-500">
+                {/* EDIT BUTTON */}
+                <button
+                    onClick={() => openEditModal(post)}
+                    className="flex items-center p-1 rounded transition hover:bg-gray-100 hover:text-violet-600"
+                >
+                    <FiEdit2 className="mr-1 w-4 h-4" />
+                    Edit
+                </button>
+                
+                {/* DELETE BUTTON */}
+                <button 
+                    onClick={() => openDeleteModal(post)}
+                    className="flex items-center p-1 rounded transition hover:bg-red-50 hover:text-red-600"
+                >
+                    <FiTrash2 className="mr-1 w-4 h-4" />
+                    Delete
+                </button>
+              </div>
+            )}
         </div>
         
         {/* Post Content */}
         <p className="text-gray-800 my-3 whitespace-pre-wrap">{post.content}</p>
 
-        {/* Engagement metrics */}
+        {/* Engagement metrics (Like/Comment/Share - Bottom) */}
         <div className="flex items-center text-sm text-gray-500 mt-2 border-t pt-2">
             {/* LIKE BUTTON */}
             <button 
@@ -330,26 +362,17 @@ export default function Home() {
                 Comment ({post.commentCount || 0})
             </button>
             
-            {/* SHARE BUTTON - NEW */}
+            {/* SHARE BUTTON */}
             <button 
                 onClick={() => handleSharePost(post)}
-                className="flex items-center mr-4 p-1 cursor-pointer text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded transition"
+                className="flex items-center p-1 cursor-pointer text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded transition"
             >
                 <FiShare2 className="mr-1" />
                 Share
             </button>
+            
+            {/* Note: The previous delete button here is removed */}
 
-            {/* DELETE BUTTON - NEW (Author only, aligned to the right) */}
-            {isAuthor && (
-                <button 
-                    // Changed handler to open the custom modal
-                    onClick={() => openDeleteModal(post)} 
-                    className="flex items-center p-1 cursor-pointer text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition ml-auto"
-                >
-                    <FiTrash2 className="mr-1" />
-                    Delete
-                </button>
-            )}
         </div>
         </div>
     );
@@ -361,7 +384,7 @@ export default function Home() {
       <div className="max-w-3xl mx-auto mt-8">
         
 
-        {/* Post Creation Area: Pass the ref here */}
+        {/* Post Creation Area */}
         <CreatePost ref={createPostRef} user={user} onPostCreated={fetchFeed} /> 
 
         {/* Feed Section Header */}
@@ -401,12 +424,21 @@ export default function Home() {
         />
       )}
 
-      {/* Delete Confirmation Modal (NEW) */}
+      {/* Delete Confirmation Modal */}
       {showDeleteModal && selectedPost && (
         <DeleteConfirmationModal
           onClose={closeDeleteModal}
-          onConfirm={handleDeletePost} // This function now handles API call
+          onConfirm={handleDeletePost} 
           postAuthor={selectedPost.author?.fullName || 'This Post'}
+        />
+      )}
+      
+      {/* Edit Post Modal (NEW) */}
+      {showEditModal && selectedPost && (
+        <EditPostModal
+          post={selectedPost}
+          onClose={closeEditModal}
+          onPostUpdated={handlePostUpdated}
         />
       )}
 

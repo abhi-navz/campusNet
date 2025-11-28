@@ -41,6 +41,52 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    
+//    education specific fields.
+    university: {
+        type: String,
+        default: "", 
+        index: true,
+    },
+    course: {
+        type: String,
+        default: "",
+        index: true,
+    },
+    graduationYear: {
+        type: Number,
+        default: null,
+        index: true,
+    },
+
+    
+    // Users who have requested to connect with THIS user (A sent request to B, so A is in B's list)
+    connectionRequests: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'User',
+        default: [],
+    },
+
+    // Users who are mutual connections
+    connections: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'User',
+        default: [],
+    },
+
+    // Users who follow this user (one-way relationship, for social feeds like posts/updates)
+    followers: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'User',
+        default: [],
+    },
+
+    // Users this user follows (one-way relationship)
+    following: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'User',
+        default: [],
+    }
   },
   { timestamps: true }
 );

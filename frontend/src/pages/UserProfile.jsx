@@ -1,9 +1,9 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
-import { FiThumbsUp, FiMessageSquare } from "react-icons/fi"; // For post interaction icons
+import { FiThumbsUp, FiMessageSquare, FiUsers, FiUserPlus, FiMail, FiUser } from "react-icons/fi"; 
 import Layout from "../components/Layout";
-import CommentModal from "../components/CommentModal"; // For opening comments
-import { timeAgo } from "../utils/timeAgo"; // For relative timestamp display
+import CommentModal from "../components/CommentModal"; 
+import { timeAgo } from "../utils/timeAgo"; 
 
 /**
  * @component UserProfile
@@ -19,6 +19,9 @@ export default function UserProfile() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [postError, setPostError] = useState(null);
+
+  // Connection State for Visitors
+  const [connectionStatus, setConnectionStatus] = useState('unknown'); // 'Connect', 'Pending', 'Connected', 'Self'
 
   // Comment Modal State
   const [showCommentsModal, setShowCommentsModal] = useState(false);
@@ -37,12 +40,38 @@ export default function UserProfile() {
   }, []);
 
   /**
+   * @function determineConnectionStatus
+   * @desc Determines the relationship status between the logged-in user and the profile user.
+   */
+  const determineConnectionStatus = (profileData) => {
+    const visitorId = loggedInUser?.id;
+    if (!visitorId) return 'Connect'; // Not logged in
+
+    if (visitorId === profileData.id) {
+        return 'Self'; // Viewing own profile
+    }
+
+    const isConnected = profileData.connections?.includes(visitorId);
+    const isRequestSent = profileData.connectionRequests?.includes(visitorId); // Did *I* send a request to *them*?
+    
+    if (isConnected) return 'Connected';
+    if (isRequestSent) return 'Pending';
+    return 'Connect';
+  };
+  
+  /**
    * @function fetchProfileData
-   * @desc Fetches the target user's profile details from the public endpoint.
+   * @desc Fetches the target user's profile details and determines connection status.
    */
   const fetchProfileData = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    
     try {
-      const res = await fetch(`http://localhost:5000/user/${id}`);
+      // The API now returns connectionsCount and followersCount
+      const res = await fetch(`http://localhost:5000/user/${id}`, {
+          method: 'GET',
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
       const data = await res.json();
 
       if (res.ok) {
@@ -51,7 +80,11 @@ export default function UserProfile() {
           id: data._id || data.id,
         };
         setProfileUser(normalizedUser);
-        return normalizedUser; // Return for use in fetchPosts
+        
+        // Set initial connection status
+        setConnectionStatus(determineConnectionStatus(normalizedUser));
+        
+        return normalizedUser; 
       } else {
         setProfileUser(null);
         return null;
@@ -61,7 +94,7 @@ export default function UserProfile() {
       setProfileUser(null);
       return null;
     }
-  }, [id]);
+  }, [id, loggedInUser]);
 
   /**
    * @function fetchPosts
@@ -71,9 +104,9 @@ export default function UserProfile() {
     setPostError(null);
     const token = localStorage.getItem('token');
     
-    // Authorization check for protected post endpoint
+    // Only attempt to fetch posts if logged in (as endpoint is protected)
     if (!token) {
-        setPostError("Authentication token missing. Cannot load posts.");
+        setPostError("Login required to load user posts.");
         return;
     }
 
@@ -96,7 +129,7 @@ export default function UserProfile() {
         console.error("Error fetching user posts:", error);
     }
   }, []);
-
+  
   // Main effect to load data
   useEffect(() => {
     setLoading(true);
@@ -113,7 +146,45 @@ export default function UserProfile() {
     navigate("/edit-profile");
   };
 
-  // Handler for Post Likes (similar to Home.jsx) - NOTE: This requires the user's ID
+  /**
+   * @function handleConnect
+   * @desc Sends a connection request to the profile user.
+   */
+  const handleConnect = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+          alert("Please log in to send requests.");
+          return;
+      }
+
+      setConnectionStatus('Pending'); // Optimistic UI update
+
+      try {
+          const res = await fetch(`http://localhost:5000/user/connect/${profileUser.id}`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` },
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+              alert(data.message);
+              // If auto-accepted, the status should technically become 'Connected', but we rely on the message
+              if (data.message.includes('established')) {
+                  setConnectionStatus('Connected');
+              } else {
+                  setConnectionStatus('Pending');
+              }
+          } else {
+              alert(data.message || "Failed to send connection request.");
+              setConnectionStatus('Connect'); // Revert on failure
+          }
+      } catch (e) {
+          alert("Network error. Could not send request.");
+          setConnectionStatus('Connect'); // Revert on network error
+      }
+  };
+
+  // Handler for Post Likes (copied from Home.jsx)
   const handleLike = async (postId, currentLikes) => {
     const token = localStorage.getItem('token');
     const userId = loggedInUser?.id;
@@ -124,7 +195,6 @@ export default function UserProfile() {
     }
 
     try {
-        // Optimistic update: Update the state before API response
         setPosts(prevPosts => 
             prevPosts.map(p => {
                 if (p._id === postId) {
@@ -139,14 +209,12 @@ export default function UserProfile() {
             })
         );
         
-        // API Call
         const response = await fetch(`http://localhost:5000/post/like/${postId}`, {
             method: 'PUT',
             headers: { 'Authorization': `Bearer ${token}` },
         });
 
         if (!response.ok) {
-            // If API fails, revert state by re-fetching posts
             fetchPosts(id); 
             console.error("Like API failed:", await response.json());
         }
@@ -232,11 +300,12 @@ export default function UserProfile() {
     );
   };
   
+  // --- Main Profile UI ---
   return (
     <Layout>
       <div className="max-w-3xl mx-auto p-4">
         
-        {/* Profile Header */}
+        {/* Profile Header and Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-6 p-4 bg-white rounded-xl shadow">
           <img
             src={profileUser.profilePic || "https://placehold.co/112x112/9253ed/ffffff?text=DU"}
@@ -250,22 +319,67 @@ export default function UserProfile() {
             <p className="text-gray-600 text-lg">
               {profileUser.headline || "No headline yet"}
             </p>
+            {/* Academic Info */}
             <p className="text-gray-500 text-md mt-1">
+              {profileUser.course && <span>{profileUser.course} | </span>}
+              {profileUser.graduationYear && <span>Grad {profileUser.graduationYear} | </span>}
               {profileUser.location || "Location not set"}
             </p>
+            
+            {/* Connection Counts */}
+            <div className="flex justify-center sm:justify-start space-x-4 mt-3 text-sm">
+                <span className="text-gray-700 font-semibold">{profileUser.connectionsCount || 0} Connections</span>
+                <span className="text-gray-700 font-semibold">{profileUser.followersCount || 0} Followers</span>
+            </div>
           </div>
           
-          {/* Edit Profile Button (only for logged-in user) */}
-          {loggedInUser && loggedInUser.id === profileUser.id && (
-            <div className="flex items-center sm:self-start mt-4 sm:mt-0">
-              <button
-                onClick={handleEdit}
-                className="bg-violet-700 text-white px-4 py-2 rounded-full font-medium hover:bg-violet-600 transition"
-              >
-                Edit Profile
-              </button>
-            </div>
-          )}
+          {/* Action Buttons (Connect/Message/Edit) */}
+          <div className="flex items-center sm:self-start mt-4 sm:mt-0 space-x-2">
+            
+            {connectionStatus === 'Self' && (
+                <button
+                    onClick={handleEdit}
+                    className="bg-violet-700 text-white px-4 py-2 rounded-full font-medium hover:bg-violet-600 transition flex items-center"
+                >
+                    <FiUser className="mr-2" /> Edit Profile
+                </button>
+            )}
+
+            {connectionStatus === 'Connect' && (
+                <button
+                    onClick={handleConnect}
+                    className="bg-violet-700 text-white px-4 py-2 rounded-full font-medium hover:bg-violet-600 transition flex items-center"
+                    disabled={!loggedInUser}
+                >
+                    <FiUserPlus className="mr-2" /> Connect
+                </button>
+            )}
+
+            {connectionStatus === 'Pending' && (
+                <button
+                    disabled
+                    className="bg-gray-400 text-white px-4 py-2 rounded-full font-medium flex items-center opacity-80"
+                >
+                    Request Sent
+                </button>
+            )}
+
+            {connectionStatus === 'Connected' && (
+                <>
+                    <button
+                        className="bg-violet-700 text-white px-4 py-2 rounded-full font-medium hover:bg-violet-600 transition flex items-center"
+                    >
+                        <FiMail className="mr-2" /> Message
+                    </button>
+                    <button
+                        disabled
+                        className="border border-green-500 text-green-500 px-4 py-2 rounded-full font-medium opacity-80"
+                    >
+                        Connected
+                    </button>
+                </>
+            )}
+          </div>
         </div>
 
         {/* 1. ABOUT / BIO SECTION */}
@@ -293,7 +407,6 @@ export default function UserProfile() {
                 <ProfilePostItem key={post._id} post={post} />
               ))}
               {/* Option to see more posts (future feature) */}
-              {/* Note: This button is static, awaiting a dedicated all-posts page */}
               <div className="text-center pt-2 border-t mt-4">
                  <button className="text-violet-700 font-medium hover:underline text-sm">
                     View All Activity
@@ -311,7 +424,7 @@ export default function UserProfile() {
         </div>
 
 
-        {/* 3. SKILLS SECTION - MOVED DOWN */}
+        {/* 3. SKILLS SECTION */}
         <div className="mb-6 p-4 bg-white rounded-xl shadow">
           <h2 className="text-xl font-semibold text-violet-700 mb-2">Skills</h2>
           {profileUser.skills && profileUser.skills.length > 0 ? (
@@ -322,7 +435,8 @@ export default function UserProfile() {
                   className="bg-violet-100 text-violet-700 px-3 py-1 rounded-full text-sm font-medium"
                 >
                   {skill}
-                </span>
+                </span
+              >
               ))}
             </div>
           ) : (

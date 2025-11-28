@@ -11,13 +11,19 @@ import authMiddleware from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Publicly viewable profile
-router.get("/:id", getUserProfile);
 
-// Protected routes for profile actions
+// Search route - Protected, must be first
+router.get("/search", authMiddleware, searchUsers);
+
+// Connection management routes - Protected
+router.post("/connect/:targetId", authMiddleware, sendConnectionRequest);
+router.post("/accept/:senderId", authMiddleware, acceptConnectionRequest);
+
+// Profile update route - Protected
 router.put("/update/:id", authMiddleware, updateUserProfile);
-router.get("/search", authMiddleware, searchUsers); // search user route
-router.post("/connect/:targetId", authMiddleware, sendConnectionRequest); //  SEND CONNECT ROUTE
-router.post("/accept/:senderId", authMiddleware, acceptConnectionRequest); //  ACCEPT CONNECT ROUTE
+
+// Profile view route - Public (can be viewed without login)
+
+router.get("/:id", getUserProfile);
 
 export default router;

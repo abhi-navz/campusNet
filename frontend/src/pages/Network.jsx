@@ -103,7 +103,7 @@ export default function Network() {
 
     const url = `http://localhost:5000/user/search?${params.toString()}`;
     
-    console.log("🔍 Searching:", url);
+    console.log("Searching:", url);
 
     try {
       const res = await fetch(url, {

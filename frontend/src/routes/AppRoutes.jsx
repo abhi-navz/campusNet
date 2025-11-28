@@ -1,8 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import Landing from "../pages/Landing";
-import Login from "../pages/Login";
-import Register from "../pages/Register";
+
 import Home from "../pages/Home";
 import UserProfile from "../pages/UserProfile";
 import EditProfile from "../pages/EditProfile";
@@ -22,10 +21,11 @@ function ProtectedRoute({ children }) {
     const token = localStorage.getItem("token"); 
     
     // Grant access if token exists, otherwise redirect.
-    return token ? children : <Navigate to="/login" replace />;
+    // Note: The redirect path is now "/" since login is on the landing page.
+    return token ? children : <Navigate to="/" replace />;
   } catch (err) {
     console.error("Error checking authentication status:", err);
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 }
 
@@ -35,8 +35,7 @@ export default function AppRoutes() {
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        {/* Removed redundant /login and /register routes */}
         <Route path="/about" element={<About />} />
 
         {/* Protected Routes */}

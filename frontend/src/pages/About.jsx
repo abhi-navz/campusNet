@@ -1,30 +1,38 @@
-import { Link } from "react-router-dom";
-import LogoLink from "../components/LogoLink"; // <-- NEW: Import the component
+import { Link, useNavigate } from "react-router-dom"; // <-- ADD useNavigate
+import LogoLink from "../components/LogoLink"; 
 
 export default function About() {
+  const navigate = useNavigate();
+  
+  // Function to navigate to the Landing page and trigger the Login modal via URL state
+  const handleAuthRedirect = (modalType) => {
+    // Navigate to the landing page and pass the intended modal type as state
+    navigate("/", { state: { openModal: modalType } });
+  };
+  
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Navbar */}
       <header className="bg-white shadow">
         <nav className="flex justify-between items-center px-6 py-4">
           {/* Logo */}
-          <LogoLink /> {/* <-- USE the new component */}
+          <LogoLink /> 
 
           {/* Links */}
           <div className="flex gap-6">
             
-            <Link
-              to="/login"
+            <button
+              onClick={() => handleAuthRedirect('login')} // <-- UPDATED TO BUTTON/REDIRECT
               className="bg-violet-700 text-white px-4 py-2 rounded-lg hover:bg-violet-600 transition"
             >
               Login
-            </Link>
-            <Link
-              to="/register"
+            </button>
+            <button
+              onClick={() => handleAuthRedirect('register')} // <-- UPDATED TO BUTTON/REDIRECT
               className="bg-violet-700 text-white px-4 py-2 rounded-lg hover:bg-violet-600 transition"
             >
               Join Now
-            </Link>
+            </button>
           </div>
         </nav>
       </header>

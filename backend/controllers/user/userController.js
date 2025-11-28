@@ -48,7 +48,7 @@ export const getUserProfile = async (req, res) => {
       userResponse.connections = convertIdsToStrings(user.connections);
       userResponse.followers = convertIdsToStrings(user.followers);
       
-      console.log(`👤 User viewing own profile. Pending requests: ${userResponse.connectionRequests.length}`);
+      console.log(`User viewing own profile. Pending requests: ${userResponse.connectionRequests.length}`);
     } else {
       // Viewing someone else's profile: Hide sensitive details
       userResponse.connectionRequestsCount = user.connectionRequests.length;

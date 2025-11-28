@@ -1,9 +1,12 @@
-import { useEffect, useState, useCallback, useRef } from "react"; // <-- Import useRef
-import { Link, useLocation } from "react-router-dom"; // <-- Import useLocation
-import { FiThumbsUp, FiMessageSquare } from "react-icons/fi"; 
+import { useEffect, useState, useCallback, useRef } from "react"; 
+import { Link, useLocation } from "react-router-dom"; 
+// ADD FiShare2 and FiTrash2
+import { FiThumbsUp, FiMessageSquare, FiShare2, FiTrash2 } from "react-icons/fi"; 
 import Layout from "../components/Layout";
 import CreatePost from "../components/CreatePost"; 
 import CommentModal from "../components/CommentModal";
+import Toast from "../components/Toast"; 
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal"; // <-- NEW IMPORT
 import { timeAgo } from "../utils/timeAgo"; 
 
 /**
@@ -16,10 +19,14 @@ export default function Home() {
   const [loadingFeed, setLoadingFeed] = useState(true);
   const [error, setError] = useState(null);
 
-  // State for Comment Modal
+  // State for Modals
   const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // <-- NEW STATE
   const [selectedPost, setSelectedPost] = useState(null);
   
+  // State for Toast Notifications
+  const [toastMessage, setToastMessage] = useState(null); 
+
   // Ref for the CreatePost component (used to programmatically focus the input)
   const createPostRef = useRef(null); 
   const location = useLocation(); // Get current location (includes hash)
@@ -90,7 +97,7 @@ export default function Home() {
     const userId = user.id;
 
     if (!token || !userId) {
-        alert("Please log in to interact with posts.");
+        setToastMessage({ type: 'error', message: "Please log in to like posts." });
         return;
     }
 
@@ -121,12 +128,12 @@ export default function Home() {
         if (!response.ok) {
             const errorData = await response.json();
             console.error("Like API failed:", errorData.message);
-            alert("Failed to process like action. Please try again.");
+            setToastMessage({ type: 'error', message: "Failed to process like action. State reverted." });
             fetchFeed(); // Re-fetch to restore correct state
         }
     } catch (err) {
         console.error("Network error during like action:", err);
-        alert("Network error during like action. Please try again.");
+        setToastMessage({ type: 'error', message: "Network error during like action. State reverted." });
         fetchFeed(); // Re-fetch to restore correct state
     }
   };
@@ -144,9 +151,30 @@ export default function Home() {
     );
   };
   
+  // --- Delete Modal Handlers ---
+
+  /**
+   * @function openDeleteModal
+   * @desc Sets the post and opens the deletion confirmation modal.
+   * @param {object} postData - The post object to be deleted.
+   */
+  const openDeleteModal = (postData) => {
+    setSelectedPost(postData);
+    setShowDeleteModal(true);
+  };
+  
+  /**
+   * @function closeDeleteModal
+   * @desc Clears the selected post and closes the deletion modal.
+   */
+  const closeDeleteModal = () => {
+    setSelectedPost(null);
+    setShowDeleteModal(false);
+  };
+
   /**
    * @function openCommentModal
-   * @desc Sets the post and opens the modal.
+   * @desc Sets the post and opens the comment modal.
    * @param {object} postData - The post object to display in the modal.
    */
   const openCommentModal = (postData) => {
@@ -156,11 +184,71 @@ export default function Home() {
   
   /**
    * @function closeCommentModal
-   * @desc Clears the selected post and closes the modal.
+   * @desc Clears the selected post and closes the comment modal.
    */
   const closeCommentModal = () => {
     setSelectedPost(null);
     setShowCommentsModal(false);
+  };
+
+  /**
+   * @function handleDeletePost
+   * @desc Handles post deletion. Triggered by modal confirmation.
+   */
+  const handleDeletePost = async () => {
+    if (!selectedPost) return; // Should not happen if modal flow is correct
+
+    const postId = selectedPost._id;
+    const token = localStorage.getItem('token');
+    
+    // Close modal immediately after confirmation
+    closeDeleteModal();
+
+    // Optimistic UI: Remove post from the list immediately
+    setPosts(prevPosts => prevPosts.filter(p => p._id !== postId));
+    setToastMessage({ type: 'success', message: "Post deleting..." });
+
+    try {
+      const response = await fetch(`http://localhost:5000/post/${postId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setToastMessage({ type: 'error', message: errorData.message || "Failed to delete post. State reverted." });
+        fetchFeed(); 
+      } else {
+        setToastMessage({ type: 'success', message: "Post and associated comments deleted." });
+      }
+    } catch (err) {
+      console.error("Network error during delete action:", err);
+      setToastMessage({ type: 'error', message: "Network error. Could not delete post. State reverted." });
+      fetchFeed(); // Re-fetch on network error
+    }
+  };
+  
+  /**
+   * @function handleSharePost
+   * @desc Placeholder for post sharing functionality (copies link to clipboard).
+   */
+  const handleSharePost = (post) => {
+    const postUrl = `${window.location.origin}/post/${post._id}`; // Mock URL
+    
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(postUrl)
+        .then(() => setToastMessage({ type: 'success', message: "Post link copied to clipboard!" }))
+        .catch(err => {
+            console.error('Could not copy text: ', err);
+            setToastMessage({ type: 'error', message: "Failed to copy link. Check console." });
+        });
+    } else {
+      // Fallback: This path is rare but provided in case clipboard API fails.
+      // We still cannot use window.alert/confirm/prompt.
+      setToastMessage({ type: 'error', message: `Clipboard failed. URL: ${postUrl}` });
+    }
   };
 
 
@@ -185,11 +273,12 @@ export default function Home() {
   /**
    * @component PostItem
    * @desc Renders a single, beautifully styled post card in the feed.
-   * @param {object} props.post - The post object containing likes and author data.
    */
   const PostItem = ({ post }) => {
     // Check if the current user ID is present in the post's likes array
     const isLiked = post.likes.includes(user.id);
+    // Check if current user is the author (using user.id)
+    const isAuthor = post.author?._id === user.id; 
 
     return (
         <div className="bg-white shadow rounded-xl p-5 border border-gray-200">
@@ -220,7 +309,7 @@ export default function Home() {
 
         {/* Engagement metrics */}
         <div className="flex items-center text-sm text-gray-500 mt-2 border-t pt-2">
-            {/* LIKE BUTTON - Dynamic styling and logic */}
+            {/* LIKE BUTTON */}
             <button 
                 onClick={() => handleLike(post._id)}
                 className={`flex items-center mr-4 p-1 rounded transition 
@@ -232,14 +321,35 @@ export default function Home() {
                 {isLiked ? 'Liked' : 'Like'} ({post.likes?.length || 0})
             </button>
             
-            {/* COMMENTS BUTTON - Opens the modal */}
+            {/* COMMENTS BUTTON */}
             <button 
                 onClick={() => openCommentModal(post)}
-                className="flex items-center p-1 cursor-pointer text-gray-500 hover:text-violet-600 hover:bg-gray-100 rounded transition"
+                className="flex items-center mr-4 p-1 cursor-pointer text-gray-500 hover:text-violet-600 hover:bg-gray-100 rounded transition"
             >
                 <FiMessageSquare className="mr-1" />
-                {post.commentCount || 0} Comments
+                Comment ({post.commentCount || 0})
             </button>
+            
+            {/* SHARE BUTTON - NEW */}
+            <button 
+                onClick={() => handleSharePost(post)}
+                className="flex items-center mr-4 p-1 cursor-pointer text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded transition"
+            >
+                <FiShare2 className="mr-1" />
+                Share
+            </button>
+
+            {/* DELETE BUTTON - NEW (Author only, aligned to the right) */}
+            {isAuthor && (
+                <button 
+                    // Changed handler to open the custom modal
+                    onClick={() => openDeleteModal(post)} 
+                    className="flex items-center p-1 cursor-pointer text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition ml-auto"
+                >
+                    <FiTrash2 className="mr-1" />
+                    Delete
+                </button>
+            )}
         </div>
         </div>
     );
@@ -252,7 +362,7 @@ export default function Home() {
         
 
         {/* Post Creation Area: Pass the ref here */}
-        <CreatePost ref={createPostRef} user={user} onPostCreated={fetchFeed} /> {/* <-- ATTACHED REF HERE */}
+        <CreatePost ref={createPostRef} user={user} onPostCreated={fetchFeed} /> 
 
         {/* Feed Section Header */}
         <h2 className="text-xl font-semibold text-gray-700 mb-4">Latest Posts</h2>
@@ -288,6 +398,24 @@ export default function Home() {
           onClose={closeCommentModal} 
           onCommentCountUpdated={handleCommentCountUpdated} 
           loggedInUserId={user.id} 
+        />
+      )}
+
+      {/* Delete Confirmation Modal (NEW) */}
+      {showDeleteModal && selectedPost && (
+        <DeleteConfirmationModal
+          onClose={closeDeleteModal}
+          onConfirm={handleDeletePost} // This function now handles API call
+          postAuthor={selectedPost.author?.fullName || 'This Post'}
+        />
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <Toast 
+          message={toastMessage.message} 
+          type={toastMessage.type} 
+          onClose={() => setToastMessage(null)} 
         />
       )}
     </Layout>

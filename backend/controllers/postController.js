@@ -216,3 +216,39 @@ export const getPostsByAuthor = async (req, res) => {
       res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+/**
+ * @function deletePost
+ * @desc Deletes a specific post and all its comments. Must be the author.
+ * @route DELETE /post/:postId
+ * @access Private
+ */
+export const deletePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id; // User ID from authenticated token
+
+    // 1. Find the post
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+
+    // 2. Check if the authenticated user is the author
+    if (post.author.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Forbidden: You can only delete your own posts." });
+    }
+
+    // 3. Delete the post
+    await Post.findByIdAndDelete(postId);
+
+    // 4. Delete all associated comments for data integrity
+    const result = await Comment.deleteMany({ post: postId });
+    console.log(`Deleted post ${postId} and ${result.deletedCount} comments.`);
+
+    res.json({ message: "Post deleted successfully." });
+  } catch (error) {
+    console.error("PostController: Error deleting post:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};

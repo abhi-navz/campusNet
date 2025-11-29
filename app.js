@@ -21,10 +21,13 @@ app.use("/post", postRoutes);
 // Serve frontend build
 app.use(express.static(path.join(_dirname, "frontend/dist")));
 
-// Catch-all route for React Router
-app.get("/*", (req, res) => {
+// --- FIX FOR EXPRESS 5 ---
+// React Router fallback (must be LAST)
+// Express 5 does NOT support "*", "/*", or regex.
+// Only this form works: "/:path*"
+
+app.get("/:path*", (req, res) => {
   res.sendFile(path.resolve(_dirname, "frontend", "dist", "index.html"));
 });
-
 
 export default app;

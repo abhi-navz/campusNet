@@ -57,7 +57,7 @@ export default function EditProfile() {
 
     // Fetch existing profile data
     async function fetchProfile() {
-      const res = await fetch(`http://localhost:5000/user/${user.id}`);
+      const res = await fetch(`https://campusnet.onrender.com/user/${user.id}`);
       const data = await res.json();
       setFormData({
         fullName: data.fullName,
@@ -99,7 +99,7 @@ export default function EditProfile() {
       ? parseInt(payload.graduationYear)
       : null;
 
-    const res = await fetch(`http://localhost:5000/user/update/${user.id}`, {
+    const res = await fetch(`https://campusnet.onrender.com/user/update/${user.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

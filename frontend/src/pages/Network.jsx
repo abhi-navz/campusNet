@@ -33,7 +33,7 @@ export default function Network() {
       if (!loggedInUserId || !token) return;
       
       try {
-        const res = await fetch(`http://localhost:5000/user/${loggedInUserId}`, {
+        const res = await fetch(`https://campusnet.onrender.com/user/${loggedInUserId}`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -101,7 +101,7 @@ export default function Network() {
       params.append('location', filters.location.trim());
     }
 
-    const url = `http://localhost:5000/user/search?${params.toString()}`;
+    const url = `https://campusnet.onrender.com/user/search?${params.toString()}`;
     
     console.log("Searching:", url);
 
@@ -201,7 +201,7 @@ export default function Network() {
     console.log(`📤 Sending request to: ${targetId}`);
 
     try {
-      const res = await fetch(`http://localhost:5000/user/connect/${targetId}`, {
+      const res = await fetch(`https://campusnet.onrender.com/user/connect/${targetId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -238,7 +238,7 @@ export default function Network() {
     console.log(`Accepting request from: ${senderId}`);
     
     try {
-      const res = await fetch(`http://localhost:5000/user/accept/${senderId}`, {
+      const res = await fetch(`https://campusnet.onrender.com/user/accept/${senderId}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
       });

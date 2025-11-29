@@ -64,7 +64,7 @@ export default function Home() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/post/feed", {
+      const response = await fetch("https://campusnet.onrender.com/post/feed", {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`, 
@@ -118,7 +118,7 @@ export default function Home() {
         );
         
         // --- API CALL ---
-        const response = await fetch(`http://localhost:5000/post/like/${postId}`, {
+        const response = await fetch(`https://campusnet.onrender.com/post/like/${postId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -209,7 +209,7 @@ export default function Home() {
     setToastMessage({ type: 'success', message: "Post deleting..." });
 
     try {
-      const response = await fetch(`http://localhost:5000/post/${postId}`, {
+      const response = await fetch(`https://campusnet.onrender.com/post/${postId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

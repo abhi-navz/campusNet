@@ -91,7 +91,7 @@ export default function UserProfile() {
       const token = localStorage.getItem("token");
 
       try {
-        const res = await fetch(`http://localhost:5000/user/${id}`, {
+        const res = await fetch(`https://campusnet.onrender.com/user/${id}`, {
           method: "GET",
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
@@ -150,7 +150,7 @@ export default function UserProfile() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/post/author/${userId}${limitQuery}`,
+        `https://campusnet.onrender.com/post/author/${userId}${limitQuery}`,
         {
           method: "GET",
           headers: { Authorization: `Bearer ${token}` },
@@ -228,7 +228,7 @@ export default function UserProfile() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/user/connect/${profileUser.id}`,
+        `https://campusnet.onrender.com/user/connect/${profileUser.id}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -268,7 +268,7 @@ export default function UserProfile() {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`http://localhost:5000/user/accept/${senderId}`, {
+      const res = await fetch(`https://campusnet.onrender.com/user/accept/${senderId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -330,7 +330,7 @@ export default function UserProfile() {
       );
 
       const response = await fetch(
-        `http://localhost:5000/post/like/${postId}`,
+        `https://campusnet.onrender.com/post/like/${postId}`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },

@@ -18,16 +18,20 @@ app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/post", postRoutes);
 
-// Serve frontend build
+// Serve static files
 app.use(express.static(path.join(_dirname, "frontend/dist")));
 
-// --- FIX FOR EXPRESS 5 ---
-// React Router fallback (must be LAST)
-// Express 5 does NOT support "*", "/*", or regex.
-// Only this form works: "/:path*"
-
-app.get("/:path*", (req, res) => {
-  res.sendFile(path.resolve(_dirname, "frontend", "dist", "index.html"));
+// --- React Frontend Fallback (Express 5 Safe Method) ---
+app.use((req, res, next) => {
+  if (
+    req.method === "GET" &&
+    !req.url.startsWith("/auth") &&
+    !req.url.startsWith("/user") &&
+    !req.url.startsWith("/post")
+  ) {
+    return res.sendFile(path.resolve(_dirname, "frontend/dist/index.html"));
+  }
+  next();
 });
 
 export default app;

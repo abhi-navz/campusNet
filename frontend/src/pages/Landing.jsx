@@ -157,7 +157,7 @@ export default function Landing() {
           Welcome to CampusNet
         </h2>
         <p className="text-gray-600 mb-8 max-w-xl">
-           professional network for Delhi University students, alumni, and faculty.  
+          A professional network for Delhi University students, alumni, and faculty.  
           Connect with peers, mentors, and opportunities — build lasting relationships that go beyond the classroom.
         </p>
 

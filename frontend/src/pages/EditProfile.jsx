@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
+import Toast from "../components/Toast"; // <-- Import Toast component
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -19,6 +20,10 @@ export default function EditProfile() {
     course: "",
     graduationYear: "",
   });
+
+  // State for managing toast notifications and submission errors
+  const [toastMessage, setToastMessage] = useState(null); 
+  const [submitError, setSubmitError] = useState(null); 
 
   // Hardcoded options for the select menus
   const COURSE_OPTIONS = [
@@ -81,10 +86,13 @@ export default function EditProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError(null); // Clear previous inline errors
+    setToastMessage(null); // Clear previous toasts
 
     // Check for token before submitting to the protected endpoint
     if (!token) {
-      alert("Authorization failed. Please login again.");
+      // Changed alert to toast
+      setToastMessage({ type: 'error', message: "Authorization failed. Please login again." });
       navigate("/login");
       return;
     }
@@ -110,114 +118,140 @@ export default function EditProfile() {
 
     const data = await res.json();
     if (res.ok) {
-      // Use inline toast notification later
-      alert("Profile updated!");
+      // CHANGED: Replaced alert() with Toast message
+      setToastMessage({ type: 'success', message: "Profile updated successfully!" });
+      
       // Update local storage with the new user object
       localStorage.setItem("user", JSON.stringify(data.user));
-      navigate(`/profile/${data.user.id || data.user._id}`);
+      
+      // Delay navigation slightly so the user sees the toast message
+      setTimeout(() => {
+        navigate(`/profile/${data.user.id || data.user._id}`);
+      }, 1000); 
+
     } else {
-      alert(data.message);
+      // CHANGED: Replaced alert() with inline error and error toast
+      const errorMessage = data.message || "Failed to update profile.";
+      setSubmitError(errorMessage);
+      setToastMessage({ type: 'error', message: errorMessage });
     }
   };
 
   return (
-    <Layout>
-      <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
-        <h2 className="text-2xl font-bold text-violet-700 mb-4">
-          Edit Profile
-        </h2>
+    // FIX: Wrap the entire return content in a fragment (<>...</>) to return a single element.
+    <> 
+      <Layout>
+        <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow">
+          <h2 className="text-2xl font-bold text-violet-700 mb-4">
+            Edit Profile
+          </h2>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            name="fullName"
-            placeholder="Full Name"
-            value={formData.fullName}
-            onChange={handleChange}
-            className="w-full border px-4 py-2 rounded"
-          />
-          <input
-            type="text"
-            name="headline"
-            placeholder="Headline (e.g. DU Student | Developer)"
-            value={formData.headline}
-            onChange={handleChange}
-            className="w-full border px-4 py-2 rounded"
-          />
-          <textarea
-            name="bio"
-            placeholder="About you..."
-            value={formData.bio}
-            onChange={handleChange}
-            className="w-full border px-4 py-2 rounded"
-          />
-          <input
-            type="text"
-            name="location"
-            placeholder="Location (e.g., New Delhi, India)"
-            value={formData.location}
-            onChange={handleChange}
-            className="w-full border px-4 py-2 rounded"
-          />
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            {/* Display inline submission error */}
+            {submitError && (
+                <p className="text-red-500 text-sm p-2 bg-red-50 rounded">{submitError}</p>
+            )}
 
-          {/* --- NEW ACADEMIC INPUTS --- */}
-          <select
-            name="course"
-            value={formData.course}
-            onChange={handleChange}
-            className="w-full border px-4 py-2 rounded"
-          >
-            <option value="" disabled>
-              Select Your Course / Degree
-            </option>
-            {COURSE_OPTIONS.map((course) => (
-              <option key={course} value={course}>
-                {course}
+            <input
+              type="text"
+              name="fullName"
+              placeholder="Full Name"
+              value={formData.fullName}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded"
+            />
+            <input
+              type="text"
+              name="headline"
+              placeholder="Headline (e.g. DU Student | Developer)"
+              value={formData.headline}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded"
+            />
+            <textarea
+              name="bio"
+              placeholder="About you..."
+              value={formData.bio}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded"
+            />
+            <input
+              type="text"
+              name="location"
+              placeholder="Location (e.g., New Delhi, India)"
+              value={formData.location}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded"
+            />
+
+            {/* --- ACADEMIC INPUTS --- */}
+            <select
+              name="course"
+              value={formData.course}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded"
+            >
+              <option value="" disabled>
+                Select Your Course / Degree
               </option>
-            ))}
-          </select>
+              {COURSE_OPTIONS.map((course) => (
+                <option key={course} value={course}>
+                  {course}
+                </option>
+              ))}
+            </select>
 
-          <select
-            name="graduationYear"
-            value={formData.graduationYear}
-            onChange={handleChange}
-            className="w-full border px-4 py-2 rounded"
-          >
-            <option value="" disabled>
-              Select Expected/Actual Graduation Year
-            </option>
-            {YEAR_OPTIONS.map((year) => (
-              <option key={year} value={year}>
-                {year}
+            <select
+              name="graduationYear"
+              value={formData.graduationYear}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded"
+            >
+              <option value="" disabled>
+                Select Expected/Actual Graduation Year
               </option>
-            ))}
-          </select>
+              {YEAR_OPTIONS.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
 
-          <input
-            type="text"
-            name="skills"
-            placeholder="Skills (comma separated: e.g., React, MongoDB, Python)"
-            value={formData.skills}
-            onChange={handleChange}
-            className="w-full border px-4 py-2 rounded"
-          />
-          <input
-            type="text"
-            name="profilePic"
-            placeholder="Profile Picture URL"
-            value={formData.profilePic}
-            onChange={handleChange}
-            className="w-full border px-4 py-2 rounded"
-          />
+            <input
+              type="text"
+              name="skills"
+              placeholder="Skills (comma separated: e.g., React, MongoDB, Python)"
+              value={formData.skills}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded"
+            />
+            <input
+              type="text"
+              name="profilePic"
+              placeholder="Profile Picture URL"
+              value={formData.profilePic}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded"
+            />
 
-          <button
-            type="submit"
-            className="bg-violet-700 text-white px-4 py-2 rounded hover:bg-violet-600"
-          >
-            Save Changes
-          </button>
-        </form>
-      </div>
-    </Layout>
+            <button
+              type="submit"
+              className="bg-violet-700 text-white px-4 py-2 rounded hover:bg-violet-600"
+            >
+              Save Changes
+            </button>
+          </form>
+        </div>
+      </Layout>
+      
+      {/* ADDED: Toast Notification component */}
+      {toastMessage && (
+          <Toast 
+            message={toastMessage.message} 
+            type={toastMessage.type} 
+            onClose={() => setToastMessage(null)} 
+          />
+      )}
+    </>
   );
 }

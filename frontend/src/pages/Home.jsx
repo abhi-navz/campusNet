@@ -7,7 +7,7 @@ import CreatePost from "../components/CreatePost";
 import CommentModal from "../components/CommentModal";
 import Toast from "../components/Toast"; 
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal"; 
-import EditPostModal from "../components/EditPostModal"; // <-- NEW IMPORT
+import EditPostModal from "../components/EditPostModal"; 
 import { timeAgo } from "../utils/timeAgo"; 
 
 /**
@@ -23,7 +23,7 @@ export default function Home() {
   // State for Modals
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false); 
-  const [showEditModal, setShowEditModal] = useState(false); // <-- NEW STATE
+  const [showEditModal, setShowEditModal] = useState(false); 
   const [selectedPost, setSelectedPost] = useState(null);
   
   // State for Toast Notifications
@@ -94,7 +94,7 @@ export default function Home() {
    * @desc Handles the update of a post object after the EditModal successfully returns.
    * @param {object} updatedPost - The full post object returned from the API.
    */
-  const handlePostUpdated = (updatedPost) => { // <-- NEW HANDLER
+  const handlePostUpdated = (updatedPost) => { 
     setPosts(prevPosts =>
       prevPosts.map(p => (p._id === updatedPost._id ? updatedPost : p))
     );

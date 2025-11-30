@@ -7,7 +7,7 @@ import { useState, forwardRef, useRef, useImperativeHandle } from 'react';
  * @param {object} props.user - The currently logged-in user object.
  * @param {function} props.onPostCreated - Callback to refresh the parent's feed state.
  */
-const CreatePost = forwardRef(({ user, onPostCreated }, ref) => { // <-- Use forwardRef
+const CreatePost = forwardRef(({ user, onPostCreated }, ref) => {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -85,13 +85,13 @@ const CreatePost = forwardRef(({ user, onPostCreated }, ref) => { // <-- Use for
       
       <form onSubmit={handleSubmit}>
         <textarea
-          ref={textareaRef} // <-- ATTACH REF HERE
+          ref={textareaRef}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Share an update, announcement, or question with CampusNet..."
           className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-violet-500 resize-none h-20"
           disabled={loading}
-          maxLength={500}
+          maxLength={800}
         />
         
         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}

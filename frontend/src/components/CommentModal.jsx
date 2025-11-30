@@ -31,7 +31,7 @@ export default function CommentModal({ post, onClose, onCommentCountUpdated, log
     setError(null);
     
     try {
-      const response = await fetch(`http://localhost:5000/post/comments/${post._id}`, {
+      const response = await fetch(`https://campusnet.onrender.com/post/comments/${post._id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -85,7 +85,7 @@ export default function CommentModal({ post, onClose, onCommentCountUpdated, log
         );
         
         // --- API CALL ---
-        const response = await fetch(`http://localhost:5000/post/comment/like/${commentId}`, {
+        const response = await fetch(`https://campusnet.onrender.com/post/comment/like/${commentId}`, {
             method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -124,7 +124,7 @@ export default function CommentModal({ post, onClose, onCommentCountUpdated, log
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/post/comments/${post._id}`, {
+      const response = await fetch(`https://campusnet.onrender.com/post/comments/${post._id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

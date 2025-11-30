@@ -191,6 +191,44 @@ export const likeUnlikeComment = async (req, res) => {
 };
 
 /**
+ * @function deleteComment
+ * @desc Deletes a specific comment and decrements the parent post's comment count.
+ * @route DELETE /post/comment/:commentId
+ * @access Private
+ */
+export const deleteComment = async (req, res) => {
+  try {
+      const commentId = req.params.commentId;
+      const userId = req.user.id; // User ID from authenticated token
+
+      // 1. Find the comment
+      const comment = await Comment.findById(commentId);
+      if (!comment) {
+          return res.status(404).json({ message: "Comment not found." });
+      }
+
+      // 2. Check if the authenticated user is the author
+      if (comment.author.toString() !== userId.toString()) {
+          return res.status(403).json({ message: "Forbidden: You can only delete your own comments." });
+      }
+
+      const postId = comment.post; 
+
+      // 3. Delete the comment
+      await Comment.findByIdAndDelete(commentId);
+
+      // 4. Decrement the commentCount on the parent Post
+      await Post.findByIdAndUpdate(postId, { $inc: { commentCount: -1 } });
+
+      res.json({ message: "Comment deleted successfully." });
+  } catch (error) {
+      console.error("PostController: Error deleting comment:", error.message);
+      res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+/**
  * @function getPostsByAuthor
  * @desc Retrieves posts by a specific user, limited to 4 for a profile preview.
  * @route GET /post/author/:authorId?limit=...
@@ -214,6 +252,46 @@ export const getPostsByAuthor = async (req, res) => {
   } catch (error) {
       console.error("PostController: Error fetching posts by author:", error.message);
       res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+/**
+ * @function updatePost
+ * @desc Updates the content of a specific post. Must be the author.
+ * @route PUT /post/:postId
+ * @access Private
+ */
+export const updatePost = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const userId = req.user.id; // User ID from authenticated token
+    const { content } = req.body;
+
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ message: "Post content cannot be empty." });
+    }
+    
+    // 1. Find the post and ensure the user is the author
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found." });
+    }
+
+    if (post.author.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Forbidden: You can only edit your own posts." });
+    }
+
+    // 2. Update the post content and save
+    post.content = content.trim();
+    await post.save();
+    
+    // 3. Re-populate the author before sending the updated post back
+    const updatedPost = await post.populate("author", "fullName profilePic");
+
+    res.json({ message: "Post updated successfully.", post: updatedPost });
+  } catch (error) {
+    console.error("PostController: Error updating post:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
